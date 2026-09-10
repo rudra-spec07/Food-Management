@@ -26,23 +26,58 @@ enum AuditEventType {
   PASSWORD_CHANGED
   USER_DEACTIVATED
   USER_REACTIVATED
+  DONATION_CREATED
+  DONATION_UPDATED
+  DONATION_CANCELLED
+}
+
+enum DonationCategory {
+  COOKED_MEAL
+  PACKAGED_FOOD
+  GROCERIES
+  BAKERY
+  FRUITS
+  VEGETABLES
+  OTHER
+}
+
+enum DonationQuantityUnit {
+  PORTIONS
+  KG
+  LITERS
+  PACKETS
+  BOXES
+  ITEMS
+}
+
+enum DonationStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  ASSIGNED
+  ACCEPTED
+  PICKED_UP
+  COMPLETED
+  CANCELLED
 }
 
 model User {
-  id            String        @id @default(uuid()) @db.Uuid
-  firstName     String        @map("first_name") @db.VarChar(100)
-  lastName      String        @map("last_name") @db.VarChar(100)
-  email         String        @unique @map("email") @db.VarChar(255)
-  phone         String?       @map("phone") @db.VarChar(20)
-  passwordHash  String        @map("password_hash") @db.Text
-  role          UserRole      @default(DONOR) @map("role")
-  status        UserStatus    @default(ACTIVE) @map("status")
-  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz
-  lastLoginAt   DateTime?     @map("last_login_at") @db.Timestamptz
+  id                   String                  @id @default(uuid()) @db.Uuid
+  firstName            String                  @map("first_name") @db.VarChar(100)
+  lastName             String                  @map("last_name") @db.VarChar(100)
+  email                String                  @unique @map("email") @db.VarChar(255)
+  phone                String?                 @map("phone") @db.VarChar(20)
+  passwordHash         String                  @map("password_hash") @db.Text
+  role                 UserRole                @default(DONOR) @map("role")
+  status               UserStatus              @default(ACTIVE) @map("status")
+  createdAt            DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+  lastLoginAt          DateTime?               @map("last_login_at") @db.Timestamptz
 
-  authSessions  AuthSession[]
-  auditLogs     AuditLog[]
+  authSessions         AuthSession[]
+  auditLogs            AuditLog[]
+  donations            Donation[]
+  statusHistoryChanges DonationStatusHistory[]
 
   @@map("users")
 }
@@ -78,4 +113,56 @@ model AuditLog {
   user       User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
+}
+
+model Donation {
+  id              String                @id @default(uuid()) @db.Uuid
+  donorId         String                @map("donor_id") @db.Uuid
+  category        DonationCategory      @map("category")
+  description     String                @map("description") @db.Text
+  quantity        Decimal               @map("quantity") @db.Decimal(10, 2)
+  quantityUnit    DonationQuantityUnit  @map("quantity_unit")
+  preparedAt      DateTime              @map("prepared_at") @db.Timestamptz
+  expiresAt       DateTime              @map("expires_at") @db.Timestamptz
+  pickupAddress   String                @map("pickup_address") @db.Text
+  pickupLatitude  Decimal?              @map("pickup_latitude") @db.Decimal(9, 6)
+  pickupLongitude Decimal?              @map("pickup_longitude") @db.Decimal(9, 6)
+  contactName     String                @map("contact_name") @db.VarChar(100)
+  contactPhone    String                @map("contact_phone") @db.VarChar(20)
+  photoUrl        String?               @map("photo_url") @db.VarChar(500)
+  notes           String?               @map("notes") @db.Text
+  status          DonationStatus        @default(PENDING_REVIEW) @map("status")
+  rejectionReason String?               @map("rejection_reason") @db.Text
+  cancelledAt     DateTime?             @map("cancelled_at") @db.Timestamptz
+  completedAt     DateTime?             @map("completed_at") @db.Timestamptz
+  createdAt       DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+
+  donor           User                  @relation(fields: [donorId], references: [id], onDelete: Restrict)
+  statusHistory   DonationStatusHistory[]
+
+  @@index([donorId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@index([donorId, createdAt])
+  @@index([status, expiresAt])
+  @@map("donations")
+}
+
+model DonationStatusHistory {
+  id         String          @id @default(uuid()) @db.Uuid
+  donationId String          @map("donation_id") @db.Uuid
+  fromStatus DonationStatus? @map("from_status")
+  toStatus   DonationStatus  @map("to_status")
+  changedBy  String          @map("changed_by") @db.Uuid
+  changedAt  DateTime        @default(now()) @map("changed_at") @db.Timestamptz
+  reason     String?         @map("reason") @db.Text
+
+  donation   Donation        @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  user       User            @relation(fields: [changedBy], references: [id], onDelete: Restrict)
+
+  @@index([donationId])
+  @@index([changedBy])
+  @@map("donation_status_history")
 }
