@@ -7,6 +7,7 @@ import { NotFoundError } from './shared/errors/app-error';
 import authRoutes from './modules/auth-user/routes/auth.routes';
 import userRoutes from './modules/auth-user/routes/user.routes';
 import donationRoutes from './modules/donations/routes/donation.routes';
+import reviewRoutes from './modules/review/routes/review.routes';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/donations', donationRoutes);
+app.use('/api/v1/admin/donations', reviewRoutes);
 
 // Handle unknown routes
 app.use((req: Request, _res: Response, next: NextFunction) => {

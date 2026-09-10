@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FoodShareLogo } from '../common/FoodShareLogo';
-import { LayoutDashboard, HeartHandshake } from 'lucide-react';
+import { LayoutDashboard, HeartHandshake, ClipboardCheck } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { user } = useAuth();
@@ -13,6 +13,7 @@ export const Sidebar: React.FC = () => {
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     ...(user.role === 'DONOR' ? [{ label: 'My Donations', path: '/donations', icon: HeartHandshake }] : []),
+    ...(user.role === 'ADMIN' ? [{ label: 'Donation Review', path: '/admin/donations/review', icon: ClipboardCheck }] : []),
   ];
 
   return (

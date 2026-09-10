@@ -9,6 +9,7 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { DonorDashboardPage } from './modules/donors/pages/DonorDashboardPage';
+import { AdminDonationReviewPage } from './modules/admin/pages/AdminDonationReviewPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
 import { ChangePasswordPage } from './pages/profile/ChangePasswordPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -46,13 +47,20 @@ export const App: React.FC = () => {
             <Route path="/register" element={<RegisterPage />} />
           </Route>
 
-          {/* Protected Routes */}
+          {/* Protected General Routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/donations" element={<DonorDashboardPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/change-password" element={<ChangePasswordPage />} />
+            </Route>
+          </Route>
+
+          {/* Protected Admin Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+            <Route element={<AppLayout />}>
+              <Route path="/admin/donations/review" element={<AdminDonationReviewPage />} />
             </Route>
           </Route>
 

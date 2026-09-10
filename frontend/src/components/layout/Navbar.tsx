@@ -53,6 +53,8 @@ export const Navbar: React.FC = () => {
         return 'Dashboard Overview';
       case '/donations':
         return 'My Food Donations';
+      case '/admin/donations/review':
+        return 'Donation Review Queue';
       case '/profile':
         return 'User Profile Settings';
       case '/change-password':

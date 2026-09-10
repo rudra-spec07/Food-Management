@@ -3,6 +3,7 @@ import app from '../../src/app';
 import { PrismaClient, DonationStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
+jest.setTimeout(30000);
 
 describe('Real Neon Database Integration & Security Tests — Module 02 (Donation Management)', () => {
   const timestamp = Date.now();

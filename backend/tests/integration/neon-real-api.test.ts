@@ -3,6 +3,8 @@ import app from '../../src/app';
 import { prisma } from '../../src/config/database';
 import { UserRole, UserStatus, AuditEventType } from '@prisma/client';
 
+jest.setTimeout(30000);
+
 describe('Real Neon Database Integration & Deep Security Tests', () => {
   const qaDonor1 = {
     firstName: 'QADonorOne',

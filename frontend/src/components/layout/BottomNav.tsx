@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LayoutDashboard, HeartHandshake } from 'lucide-react';
+import { LayoutDashboard, HeartHandshake, ClipboardCheck } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
   const { user } = useAuth();
@@ -12,6 +12,7 @@ export const BottomNav: React.FC = () => {
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     ...(user.role === 'DONOR' ? [{ label: 'Donations', path: '/donations', icon: HeartHandshake }] : []),
+    ...(user.role === 'ADMIN' ? [{ label: 'Review Queue', path: '/admin/donations/review', icon: ClipboardCheck }] : []),
   ];
 
   return (

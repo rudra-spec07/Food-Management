@@ -29,6 +29,13 @@ enum AuditEventType {
   DONATION_CREATED
   DONATION_UPDATED
   DONATION_CANCELLED
+  DONATION_APPROVED
+  DONATION_REJECTED
+}
+
+enum ReviewDecision {
+  APPROVED
+  REJECTED
 }
 
 enum DonationCategory {
@@ -78,6 +85,7 @@ model User {
   auditLogs            AuditLog[]
   donations            Donation[]
   statusHistoryChanges DonationStatusHistory[]
+  donationReviews      DonationReview[]
 
   @@map("users")
 }
@@ -140,6 +148,7 @@ model Donation {
 
   donor           User                  @relation(fields: [donorId], references: [id], onDelete: Restrict)
   statusHistory   DonationStatusHistory[]
+  review          DonationReview?
 
   @@index([donorId])
   @@index([status])
@@ -165,4 +174,35 @@ model DonationStatusHistory {
   @@index([donationId])
   @@index([changedBy])
   @@map("donation_status_history")
+}
+
+model DonationReview {
+  id         String         @id @default(uuid()) @db.Uuid
+  donationId String         @unique @map("donation_id") @db.Uuid
+  reviewerId String         @map("reviewer_id") @db.Uuid
+  decision   ReviewDecision @map("decision")
+  reason     String?        @map("reason") @db.Text
+  reviewedAt DateTime       @default(now()) @map("reviewed_at") @db.Timestamptz
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  donation   Donation       @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  reviewer   User           @relation(fields: [reviewerId], references: [id], onDelete: Restrict)
+
+  @@index([reviewerId])
+  @@index([reviewedAt])
+  @@map("donation_reviews")
+}
+
+model OutboxEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  aggregateType String    @map("aggregate_type") @db.VarChar(50)
+  aggregateId   String    @map("aggregate_id") @db.VarChar(255)
+  eventType     String    @map("event_type") @db.VarChar(100)
+  payload       Json      @map("payload")
+  retryCount    Int       @default(0) @map("retry_count")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  publishedAt   DateTime? @map("published_at") @db.Timestamptz
+
+  @@index([createdAt])
+  @@map("outbox_events")
 }

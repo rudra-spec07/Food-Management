@@ -2,8 +2,13 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
-export const ProtectedRoute: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  const { status } = useAuth();
+interface ProtectedRouteProps {
+  children?: React.ReactNode;
+  allowedRoles?: Array<'DONOR' | 'ADMIN' | 'WORKER'>;
+}
+
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+  const { user, status } = useAuth();
 
   if (status === 'loading') {
     return (
@@ -18,6 +23,10 @@ export const ProtectedRoute: React.FC<{ children?: React.ReactNode }> = ({ child
 
   if (status === 'unauthenticated') {
     return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && user && !allowedRoles.includes(user.role as any)) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children ? <>{children}</> : <Outlet />;
