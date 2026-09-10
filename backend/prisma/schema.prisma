@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  DONOR
+  ADMIN
+  WORKER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AuditEventType {
+  USER_REGISTERED
+  USER_LOGIN_SUCCESS
+  USER_LOGIN_FAILED
+  USER_LOGOUT
+  PASSWORD_CHANGED
+  USER_DEACTIVATED
+  USER_REACTIVATED
+}
+
+model User {
+  id            String        @id @default(uuid()) @db.Uuid
+  firstName     String        @map("first_name") @db.VarChar(100)
+  lastName      String        @map("last_name") @db.VarChar(100)
+  email         String        @unique @map("email") @db.VarChar(255)
+  phone         String?       @map("phone") @db.VarChar(20)
+  passwordHash  String        @map("password_hash") @db.Text
+  role          UserRole      @default(DONOR) @map("role")
+  status        UserStatus    @default(ACTIVE) @map("status")
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  lastLoginAt   DateTime?     @map("last_login_at") @db.Timestamptz
+
+  authSessions  AuthSession[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model AuthSession {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  tokenJti   String    @unique @map("token_jti") @db.Uuid
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenJti])
+  @@index([expiresAt])
+  @@map("auth_sessions")
+}
+
+model AuditLog {
+  id         String         @id @default(uuid()) @db.Uuid
+  userId     String?        @map("user_id") @db.Uuid
+  action     AuditEventType @map("action")
+  entityType String         @map("entity_type") @db.VarChar(50)
+  entityId   String?        @map("entity_id") @db.VarChar(255)
+  metadata   Json?          @map("metadata")
+  ipAddress  String?        @map("ip_address") @db.VarChar(45)
+  userAgent  String?        @map("user_agent") @db.Text
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  user       User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
