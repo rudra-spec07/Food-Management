@@ -51,6 +51,8 @@ export const Navbar: React.FC = () => {
     switch (location.pathname) {
       case '/dashboard':
         return 'Dashboard Overview';
+      case '/donations':
+        return 'My Food Donations';
       case '/profile':
         return 'User Profile Settings';
       case '/change-password':

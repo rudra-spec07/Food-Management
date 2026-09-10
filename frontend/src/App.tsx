@@ -8,6 +8,7 @@ import { LandingPage } from './pages/landing/LandingPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { DonorDashboardPage } from './modules/donors/pages/DonorDashboardPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
 import { ChangePasswordPage } from './pages/profile/ChangePasswordPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -49,6 +50,7 @@ export const App: React.FC = () => {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/donations" element={<DonorDashboardPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/change-password" element={<ChangePasswordPage />} />
             </Route>
