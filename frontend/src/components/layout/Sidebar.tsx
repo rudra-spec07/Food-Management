@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FoodShareLogo } from '../common/FoodShareLogo';
-import { LayoutDashboard, HeartHandshake, ClipboardCheck } from 'lucide-react';
+import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Package, Truck } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { user } = useAuth();
@@ -12,8 +12,23 @@ export const Sidebar: React.FC = () => {
 
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    ...(user.role === 'DONOR' ? [{ label: 'My Donations', path: '/donations', icon: HeartHandshake }] : []),
-    ...(user.role === 'ADMIN' ? [{ label: 'Donation Review', path: '/admin/donations/review', icon: ClipboardCheck }] : []),
+    ...(user.role === 'DONOR'
+      ? [{ label: 'My Donations', path: '/donations', icon: HeartHandshake }]
+      : []),
+    ...(user.role === 'ADMIN'
+      ? [
+          { label: 'Donation Review', path: '/admin/donations/review', icon: ClipboardCheck },
+          { label: 'Worker Management', path: '/admin/workers', icon: UserPlus },
+          { label: 'Assignment Queue', path: '/admin/donations/assignments', icon: ClipboardList },
+        ]
+      : []),
+    ...(user.role === 'WORKER'
+      ? [
+          { label: 'My Assignments', path: '/worker/assignments', icon: ClipboardList },
+          { label: 'Available Food', path: '/collection/available', icon: Package },
+          { label: 'Distributions', path: '/distributions', icon: Truck },
+        ]
+      : []),
   ];
 
   return (

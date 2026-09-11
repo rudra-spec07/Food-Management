@@ -8,6 +8,8 @@ import authRoutes from './modules/auth-user/routes/auth.routes';
 import userRoutes from './modules/auth-user/routes/user.routes';
 import donationRoutes from './modules/donations/routes/donation.routes';
 import reviewRoutes from './modules/review/routes/review.routes';
+import assignmentRoutes from './modules/assignment/routes/assignment.routes';
+import adminWorkerRoutes from './modules/admin-workers/routes/admin-worker.routes';
 
 const app = express();
 
@@ -26,10 +28,12 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 // API v1 Routes
+app.use('/api/v1', assignmentRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/donations', donationRoutes);
 app.use('/api/v1/admin/donations', reviewRoutes);
+app.use('/api/v1/admin/workers', adminWorkerRoutes);
 
 // Handle unknown routes
 app.use((req: Request, _res: Response, next: NextFunction) => {

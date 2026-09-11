@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LayoutDashboard, HeartHandshake, ClipboardCheck } from 'lucide-react';
+import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Package } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
   const { user } = useAuth();
@@ -11,8 +11,22 @@ export const BottomNav: React.FC = () => {
 
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    ...(user.role === 'DONOR' ? [{ label: 'Donations', path: '/donations', icon: HeartHandshake }] : []),
-    ...(user.role === 'ADMIN' ? [{ label: 'Review Queue', path: '/admin/donations/review', icon: ClipboardCheck }] : []),
+    ...(user.role === 'DONOR'
+      ? [{ label: 'Donations', path: '/donations', icon: HeartHandshake }]
+      : []),
+    ...(user.role === 'ADMIN'
+      ? [
+          { label: 'Review', path: '/admin/donations/review', icon: ClipboardCheck },
+          { label: 'Workers', path: '/admin/workers', icon: UserPlus },
+          { label: 'Assign', path: '/admin/donations/assignments', icon: ClipboardList },
+        ]
+      : []),
+    ...(user.role === 'WORKER'
+      ? [
+          { label: 'My Tasks', path: '/worker/assignments', icon: ClipboardList },
+          { label: 'Available', path: '/collection/available', icon: Package },
+        ]
+      : []),
   ];
 
   return (
@@ -31,7 +45,7 @@ export const BottomNav: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '3px',
-              padding: '6px 12px',
+              padding: '6px 8px',
               color: isActive ? 'var(--foodshare-green-dark)' : 'var(--text-muted)',
               fontWeight: isActive ? 700 : 500,
               fontSize: '0.75rem',
@@ -41,7 +55,7 @@ export const BottomNav: React.FC = () => {
             }}
           >
             <Icon size={20} color={isActive ? 'var(--foodshare-green-dark)' : 'currentColor'} />
-            <span>{item.label}</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
           </Link>
         );
       })}

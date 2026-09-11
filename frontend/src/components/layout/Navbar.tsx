@@ -48,20 +48,21 @@ export const Navbar: React.FC = () => {
   };
 
   const getPageTitle = () => {
-    switch (location.pathname) {
-      case '/dashboard':
-        return 'Dashboard Overview';
-      case '/donations':
-        return 'My Food Donations';
-      case '/admin/donations/review':
-        return 'Donation Review Queue';
-      case '/profile':
-        return 'User Profile Settings';
-      case '/change-password':
-        return 'Security & Password';
-      default:
-        return 'FoodShare App';
-    }
+    if (location.pathname === '/dashboard') return 'Dashboard Overview';
+    if (location.pathname === '/donations') return 'My Food Donations';
+    if (location.pathname === '/admin/donations/review') return 'Donation Review Queue';
+    if (location.pathname === '/admin/workers') return 'Worker Account Provisioning';
+    if (location.pathname === '/admin/donations/assignments') return 'Worker Assignment Queue';
+    if (location.pathname === '/worker/assignments') return 'My Assigned Tasks';
+    if (location.pathname === '/collection/available') return 'Available Food Collections';
+    if (location.pathname === '/collection') return 'Collection History';
+    if (location.pathname.startsWith('/collection/')) return 'Collection Detail';
+    if (location.pathname === '/distributions') return 'Food Distribution Records';
+    if (location.pathname === '/distributions/new') return 'Create Food Distribution';
+    if (location.pathname.startsWith('/distributions/')) return 'Distribution Detail';
+    if (location.pathname === '/profile') return 'User Profile Settings';
+    if (location.pathname === '/change-password') return 'Security & Password';
+    return 'FoodShare App';
   };
 
   return (

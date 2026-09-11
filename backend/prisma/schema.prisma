@@ -31,6 +31,17 @@ enum AuditEventType {
   DONATION_CANCELLED
   DONATION_APPROVED
   DONATION_REJECTED
+  DONATION_ASSIGNED
+  ASSIGNMENT_ACCEPTED
+  ASSIGNMENT_REJECTED
+  WORKER_CREATED
+}
+
+enum AssignmentStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
 }
 
 enum ReviewDecision {
@@ -86,6 +97,8 @@ model User {
   donations            Donation[]
   statusHistoryChanges DonationStatusHistory[]
   donationReviews      DonationReview[]
+  workerAssignments    Assignment[]            @relation("WorkerAssignments")
+  adminAssignments     Assignment[]            @relation("AdminAssignments")
 
   @@map("users")
 }
@@ -149,6 +162,7 @@ model Donation {
   donor           User                  @relation(fields: [donorId], references: [id], onDelete: Restrict)
   statusHistory   DonationStatusHistory[]
   review          DonationReview?
+  assignments     Assignment[]
 
   @@index([donorId])
   @@index([status])
@@ -205,4 +219,28 @@ model OutboxEvent {
 
   @@index([createdAt])
   @@map("outbox_events")
+}
+
+model Assignment {
+  id              String           @id @default(uuid()) @db.Uuid
+  donationId      String           @map("donation_id") @db.Uuid
+  workerId        String           @map("worker_id") @db.Uuid
+  assignedBy      String           @map("assigned_by") @db.Uuid
+  status          AssignmentStatus @default(PENDING) @map("status")
+  rejectionReason String?          @map("rejection_reason") @db.Text
+  assignedAt      DateTime         @default(now()) @map("assigned_at") @db.Timestamptz
+  respondedAt     DateTime?        @map("responded_at") @db.Timestamptz
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  donation        Donation         @relation(fields: [donationId], references: [id], onDelete: Restrict)
+  worker          User             @relation("WorkerAssignments", fields: [workerId], references: [id], onDelete: Restrict)
+  assigner        User             @relation("AdminAssignments", fields: [assignedBy], references: [id], onDelete: Restrict)
+
+  @@index([workerId])
+  @@index([donationId])
+  @@index([status])
+  @@index([workerId, status])
+  @@index([donationId, createdAt(sort: Desc)])
+  @@map("assignments")
 }

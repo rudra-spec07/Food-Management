@@ -13,6 +13,7 @@ const ALLOWED_TRANSITIONS: Record<DonationStatus, DonationStatus[]> = {
   [DonationStatus.REJECTED]: [],
   [DonationStatus.ASSIGNED]: [
     DonationStatus.ACCEPTED,
+    DonationStatus.APPROVED,
     DonationStatus.CANCELLED,
   ],
   [DonationStatus.ACCEPTED]: [

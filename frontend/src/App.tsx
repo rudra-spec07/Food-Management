@@ -10,6 +10,15 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { DonorDashboardPage } from './modules/donors/pages/DonorDashboardPage';
 import { AdminDonationReviewPage } from './modules/admin/pages/AdminDonationReviewPage';
+import { AdminWorkerProvisioningPage } from './modules/admin/pages/AdminWorkerProvisioningPage';
+import { AdminAssignmentQueuePage } from './modules/admin/pages/AdminAssignmentQueuePage';
+import { WorkerAssignmentsPage } from './modules/worker/pages/WorkerAssignmentsPage';
+import { AvailableFoodPage } from './pages/collection/AvailableFoodPage';
+import { CollectionHistoryPage } from './pages/collection/CollectionHistoryPage';
+import { CollectionDetailPage } from './pages/collection/CollectionDetailPage';
+import { DistributionListPage } from './pages/distributions/DistributionListPage';
+import { CreateDistributionPage } from './pages/distributions/CreateDistributionPage';
+import { DistributionDetailPage } from './pages/distributions/DistributionDetailPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
 import { ChangePasswordPage } from './pages/profile/ChangePasswordPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -61,6 +70,27 @@ export const App: React.FC = () => {
           <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
             <Route element={<AppLayout />}>
               <Route path="/admin/donations/review" element={<AdminDonationReviewPage />} />
+              <Route path="/admin/workers" element={<AdminWorkerProvisioningPage />} />
+              <Route path="/admin/donations/assignments" element={<AdminAssignmentQueuePage />} />
+            </Route>
+          </Route>
+
+          {/* Protected Worker Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['WORKER']} />}>
+            <Route element={<AppLayout />}>
+              <Route path="/worker/assignments" element={<WorkerAssignmentsPage />} />
+            </Route>
+          </Route>
+
+          {/* Protected Operational Routes (Worker & Admin) */}
+          <Route element={<ProtectedRoute allowedRoles={['WORKER', 'ADMIN']} />}>
+            <Route element={<AppLayout />}>
+              <Route path="/collection/available" element={<AvailableFoodPage />} />
+              <Route path="/collection" element={<CollectionHistoryPage />} />
+              <Route path="/collection/:collectionId" element={<CollectionDetailPage />} />
+              <Route path="/distributions" element={<DistributionListPage />} />
+              <Route path="/distributions/new" element={<CreateDistributionPage />} />
+              <Route path="/distributions/:distributionId" element={<DistributionDetailPage />} />
             </Route>
           </Route>
 

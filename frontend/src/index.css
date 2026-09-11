@@ -537,3 +537,462 @@ a:hover {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* =============================================
+   MODULE 04 UTILITY CLASSES
+   These are design-system aliases used by the
+   Admin Assignment, Worker Provisioning, and
+   Worker Assignment pages.
+   ============================================= */
+
+/* Card — surface panel */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--foodshare-green-border);
+}
+
+/* Input Field */
+.input-field {
+  width: 100%;
+  padding: 10px 14px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-family: var(--font-family);
+  transition: var(--transition);
+  outline: none;
+  resize: vertical;
+}
+
+.input-field:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--foodshare-green-soft);
+}
+
+.input-field:disabled {
+  background-color: #f8fafc;
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.input-field::placeholder {
+  color: var(--text-light);
+}
+
+/* Buttons — base */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-family);
+  border-radius: var(--radius-sm);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Primary button — FoodShare green */
+.btn-primary {
+  background-color: var(--foodshare-green-dark);
+  color: #ffffff;
+  border-color: var(--foodshare-green-dark);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #0c4028;
+  border-color: #0c4028;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Secondary button — outlined */
+.btn-secondary {
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--foodshare-green-soft);
+  border-color: var(--foodshare-green-border);
+  color: var(--foodshare-green-dark);
+}
+
+/* Status Badge — base */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+/* Status Badge variants — donation & assignment statuses */
+.status-badge.approved,
+.status-badge.active {
+  background-color: #dcfce7;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.status-badge.pending,
+.status-badge.pending_review {
+  background-color: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.status-badge.rejected {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.status-badge.assigned {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+
+.status-badge.accepted {
+  background-color: #e0e7ff;
+  color: #4338ca;
+  border-color: #c7d2fe;
+}
+
+.status-badge.cancelled {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+.status-badge.picked_up {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  border-color: #e9d5ff;
+}
+
+.status-badge.completed {
+  background-color: #d1fae5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+/* ============================================================
+   Worker Management — Data Table
+   ============================================================ */
+
+.data-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-surface);
+  min-width: 680px;
+}
+
+.data-table thead th {
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+  background: var(--bg-page);
+}
+
+.data-table tbody tr {
+  transition: background-color 0.12s;
+}
+
+.data-table tbody tr:hover {
+  background-color: var(--foodshare-green-soft);
+}
+
+.data-table tbody td {
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ============================================================
+   Worker Management — Filter Tabs
+   ============================================================ */
+
+.filter-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.filter-tab {
+  padding: 9px 18px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.875rem;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  margin-bottom: -1px;
+  line-height: 1.4;
+}
+
+.filter-tab:hover {
+  color: var(--text-main);
+}
+
+.filter-tab.active {
+  color: var(--foodshare-green-primary);
+  border-bottom-color: var(--foodshare-green-primary);
+}
+
+/* ============================================================
+   Worker Management — Pagination
+   ============================================================ */
+
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  min-width: 90px;
+  text-align: center;
+}
+
+/* ============================================================
+   Worker Management — Worker Avatar Initial
+   ============================================================ */
+
+.worker-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--foodshare-green-mint);
+  color: var(--foodshare-green-dark);
+  font-weight: 700;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.worker-avatar.large {
+  width: 44px;
+  height: 44px;
+  font-size: 0.95rem;
+}
+
+/* ============================================================
+   Worker Management — Skeleton Loading
+   ============================================================ */
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.skeleton {
+  background: var(--border-color);
+  border-radius: 4px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.skeleton-row:last-child {
+  border-bottom: none;
+}
+
+/* ============================================================
+   Worker Management — Copy Button
+   ============================================================ */
+
+.copy-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 0.72rem;
+  font-family: var(--font-family);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.copy-btn:hover {
+  background: var(--foodshare-green-soft);
+  border-color: var(--foodshare-green-border);
+  color: var(--foodshare-green-primary);
+}
+
+.copy-btn.copied {
+  background: var(--foodshare-green-soft);
+  border-color: var(--foodshare-green-primary);
+  color: var(--foodshare-green-primary);
+}
+
+/* ============================================================
+   Worker Management — Mobile Cards (≤ 768px)
+   ============================================================ */
+
+.worker-mobile-cards {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .data-table-wrap {
+    display: none;
+  }
+
+  .worker-mobile-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .worker-card-mobile {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .worker-card-mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .worker-card-mobile-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-main);
+  }
+
+  .worker-card-mobile-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    gap: 8px;
+  }
+
+  .worker-card-mobile-label {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .worker-card-mobile-value {
+    color: var(--text-main);
+    font-size: 0.82rem;
+    text-align: right;
+    word-break: break-all;
+  }
+}
+
+/* Worker selector in assignment modal */
+.worker-selector-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--foodshare-green-soft);
+  border: 1px solid var(--foodshare-green-border);
+  border-radius: var(--radius-md);
+  margin-top: 10px;
+}
+
+.worker-selector-preview-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.worker-selector-preview-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.worker-selector-preview-email {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
