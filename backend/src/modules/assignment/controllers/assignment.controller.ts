@@ -72,6 +72,25 @@ export class AssignmentController {
     }
   };
 
+  // GET /api/v1/admin/assignments (ADMIN)
+  public getAdminAssignments = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const query = assignmentQuerySchema.parse(req.query);
+      const result = await this.assignmentService.getAdminAssignments(query);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+
   // GET /api/v1/worker/assignments (WORKER)
   public getWorkerAssignments = async (
     req: Request,

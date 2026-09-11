@@ -22,6 +22,7 @@ vi.mock('../services/admin-worker.service', () => ({
 vi.mock('../services/assignment.service', () => ({
   assignmentService: {
     getAssignmentQueue: vi.fn(),
+    getAdminAssignments: vi.fn(),
     assignWorker: vi.fn(),
     getAssignmentHistory: vi.fn(),
     getWorkerAssignments: vi.fn(),
@@ -342,6 +343,10 @@ describe('Frontend Module 04 — Unit & Component Tests', () => {
         items: [mockDonation],
         pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
       });
+      (assignmentService.getAdminAssignments as any).mockResolvedValue({
+        items: [],
+        pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+      });
     });
 
     it('renders the assignment queue with donation cards', async () => {
@@ -560,6 +565,115 @@ describe('Frontend Module 04 — Unit & Component Tests', () => {
       // While assigning — button shows "Assigning…" and is disabled
       expect(await screen.findByText(/Assigning…/i)).toBeInTheDocument();
       expect(submitBtn).toBeDisabled();
+    });
+
+    it('switches between Pending Assignment and Assigned Tasks tabs', async () => {
+      (assignmentService.getAdminAssignments as any).mockResolvedValue({
+        items: [
+          {
+            id: 'assignment-101',
+            donationId: mockDonation.id,
+            workerId: mockWorker.id,
+            status: 'ACCEPTED',
+            assignedAt: new Date().toISOString(),
+            respondedAt: new Date().toISOString(),
+            donation: mockDonation,
+            worker: mockWorker,
+          },
+        ],
+        pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+      });
+
+      render(
+        <MemoryRouter>
+          <AdminAssignmentQueuePage />
+        </MemoryRouter>
+      );
+
+      // Default view is Pending Assignment tab
+      expect(await screen.findByText('Cooked Meal')).toBeInTheDocument();
+
+      // Click Assigned Tasks / Tracking tab
+      const assignedTab = screen.getByRole('tab', { name: /Assigned Tasks/i });
+      fireEvent.click(assignedTab);
+
+      // Verify Assigned Tasks table renders with assigned worker
+      const table = await screen.findByRole('table');
+      expect(within(table).getByText('Rahul Kumar')).toBeInTheDocument();
+      expect(within(table).getByText(/Accepted — Awaiting Pickup/i)).toBeInTheDocument();
+    });
+
+    it('filters assigned tasks when status filter chip is clicked', async () => {
+      (assignmentService.getAdminAssignments as any).mockResolvedValue({
+        items: [],
+        pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+      });
+
+      render(
+        <MemoryRouter>
+          <AdminAssignmentQueuePage />
+        </MemoryRouter>
+      );
+
+      // Switch to Assigned Tasks tab
+      const assignedTab = screen.getByRole('tab', { name: /Assigned Tasks/i });
+      fireEvent.click(assignedTab);
+
+      // Click "Accepted" filter chip
+      const acceptedChip = await screen.findByRole('button', { name: /^Accepted$/i });
+      fireEvent.click(acceptedChip);
+
+      await waitFor(() => {
+        expect(assignmentService.getAdminAssignments).toHaveBeenCalledWith(1, 20, 'ACCEPTED');
+      });
+    });
+
+    it('opens assignment detail modal when Details button is clicked', async () => {
+      (assignmentService.getAdminAssignments as any).mockResolvedValue({
+        items: [
+          {
+            id: 'assignment-101',
+            donationId: mockDonation.id,
+            workerId: mockWorker.id,
+            status: 'ACCEPTED',
+            assignedAt: new Date().toISOString(),
+            respondedAt: new Date().toISOString(),
+            donation: mockDonation,
+            worker: mockWorker,
+          },
+        ],
+        pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+      });
+      (assignmentService.getAssignmentHistory as any).mockResolvedValue([
+        {
+          id: 'assignment-101',
+          donationId: mockDonation.id,
+          workerId: mockWorker.id,
+          status: 'ACCEPTED',
+          assignedAt: new Date().toISOString(),
+          worker: mockWorker,
+        },
+      ]);
+
+      render(
+        <MemoryRouter>
+          <AdminAssignmentQueuePage />
+        </MemoryRouter>
+      );
+
+      // Switch to Assigned Tasks tab
+      const assignedTab = screen.getByRole('tab', { name: /Assigned Tasks/i });
+      fireEvent.click(assignedTab);
+
+      // Click Details button (desktop or mobile)
+      const detailsBtns = await screen.findAllByRole('button', { name: /Details/i });
+      fireEvent.click(detailsBtns[0]);
+
+      // Modal opens with title and worker details
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
+      expect(within(dialog).getByRole('heading', { name: /Assignment Details & History/i })).toBeInTheDocument();
+      expect(within(dialog).getByText(/Assigned Worker Details/i)).toBeInTheDocument();
     });
   });
 

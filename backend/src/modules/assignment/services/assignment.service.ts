@@ -47,6 +47,30 @@ export class AssignmentService {
     return this.assignmentRepo.findAssignmentHistoryByDonationId(donationId);
   }
 
+  public async getAdminAssignments(
+    query: AssignmentQueryDto
+  ): Promise<PaginatedAssignmentResult<any>> {
+    const page = query.page || 1;
+    const limit = Math.min(query.limit || 20, 100);
+
+    const [items, total] = await this.assignmentRepo.findAdminAssignments({
+      page,
+      limit,
+      status: query.status,
+    });
+    const totalPages = Math.ceil(total / limit) || 0;
+
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
+  }
+
   public async getWorkerAssignments(
     workerId: string,
     query: AssignmentQueryDto

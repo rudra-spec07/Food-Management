@@ -12,6 +12,13 @@ describe('Module 04 — Security & RBAC Guard Unit Tests', () => {
       expect(res.body.error.code).toBe('AUTH_HEADER_MISSING');
     });
 
+    it('should reject unauthenticated access with 401 on admin assignments tracking list', async () => {
+      const res = await request(app).get('/api/v1/admin/assignments');
+      expect(res.status).toBe(401);
+      expect(res.body.success).toBe(false);
+      expect(res.body.error.code).toBe('AUTH_HEADER_MISSING');
+    });
+
     it('should reject unauthenticated access with 401 on admin assign worker', async () => {
       const res = await request(app)
         .post('/api/v1/admin/donations/123e4567-e89b-12d3-a456-426614174000/assign')

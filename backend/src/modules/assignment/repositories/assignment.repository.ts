@@ -109,6 +109,82 @@ export class AssignmentRepository {
     });
   }
 
+  public async findAdminAssignments(options: {
+    page: number;
+    limit: number;
+    status?: AssignmentStatus;
+  }): Promise<[any[], number]> {
+    const skip = (options.page - 1) * options.limit;
+    const where: Prisma.AssignmentWhereInput = {};
+
+    if (options.status) {
+      where.status = options.status;
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.assignment.findMany({
+        where,
+        skip,
+        take: options.limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          donation: {
+            select: {
+              id: true,
+              category: true,
+              description: true,
+              quantity: true,
+              quantityUnit: true,
+              preparedAt: true,
+              expiresAt: true,
+              pickupAddress: true,
+              pickupLatitude: true,
+              pickupLongitude: true,
+              contactName: true,
+              contactPhone: true,
+              photoUrl: true,
+              notes: true,
+              status: true,
+              createdAt: true,
+              updatedAt: true,
+              donor: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  phone: true,
+                },
+              },
+            },
+          },
+          worker: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              role: true,
+              status: true,
+            },
+          },
+          assigner: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      }),
+      this.prisma.assignment.count({ where }),
+    ]);
+
+    return [items, total];
+  }
+
   public async findWorkerAssignments(
     workerId: string,
     options: { page: number; limit: number }

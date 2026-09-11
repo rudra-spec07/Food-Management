@@ -96,6 +96,23 @@ export const assignmentService = {
     return response.data.data;
   },
 
+  // Admin: Get all assignments across workers with optional status filter
+  getAdminAssignments: async (
+    page = 1,
+    limit = 20,
+    status?: string
+  ): Promise<PaginatedResult<Assignment[]>> => {
+    const params: Record<string, string | number> = { page, limit };
+    if (status && status !== 'ALL') {
+      params.status = status;
+    }
+    const response = await apiClient.get<ApiResponse<PaginatedResult<Assignment[]>>>(
+      `/admin/assignments`,
+      { params }
+    );
+    return response.data.data;
+  },
+
   // Worker: Get worker's assigned tasks
   getWorkerAssignments: async (page = 1, limit = 20): Promise<PaginatedResult<Assignment[]>> => {
     const response = await apiClient.get<ApiResponse<PaginatedResult<Assignment[]>>>(

@@ -29,6 +29,13 @@ router.get(
   controller.getAssignmentHistory
 );
 
+router.get(
+  '/admin/assignments',
+  authenticate,
+  requireRole(UserRole.ADMIN),
+  controller.getAdminAssignments
+);
+
 // Worker Assignment Endpoints
 router.get(
   '/worker/assignments',

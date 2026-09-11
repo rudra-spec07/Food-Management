@@ -11,6 +11,7 @@ export interface RejectAssignmentDto {
 export interface AssignmentQueryDto {
   page?: number;
   limit?: number;
+  status?: AssignmentStatus;
 }
 
 export interface PaginatedAssignmentResult<T> {

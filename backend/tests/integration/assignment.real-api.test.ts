@@ -497,4 +497,62 @@ describe('Module 04 — Real Database Integration, Security & Concurrency Tests'
       expect(indexCheck[0].indexname).toBe('unique_active_assignment_per_donation');
     });
   });
+
+  describe('7. Admin Assigned Tasks Tracking — GET /api/v1/admin/assignments', () => {
+    it('should forbid DONOR from accessing admin assignments list with 403', async () => {
+      const res = await request(app)
+        .get('/api/v1/admin/assignments')
+        .set('Authorization', `Bearer ${donorToken}`);
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('should forbid WORKER from accessing admin assignments list with 403', async () => {
+      const res = await request(app)
+        .get('/api/v1/admin/assignments')
+        .set('Authorization', `Bearer ${worker1Token}`);
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('should allow ADMIN to list assignments with safe worker and donation fields', async () => {
+      const res = await request(app)
+        .get('/api/v1/admin/assignments')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.items).toBeDefined();
+      expect(Array.isArray(res.body.data.items)).toBe(true);
+      expect(res.body.data.pagination).toBeDefined();
+      expect(res.body.data.pagination.page).toBe(1);
+
+      // Verify no sensitive credentials exposed
+      res.body.data.items.forEach((item: any) => {
+        expect(item.worker).toBeDefined();
+        expect(item.worker.passwordHash).toBeUndefined();
+        expect(item.worker.password).toBeUndefined();
+        if (item.assigner) {
+          expect(item.assigner.passwordHash).toBeUndefined();
+        }
+        if (item.donation?.donor) {
+          expect(item.donation.donor.passwordHash).toBeUndefined();
+        }
+      });
+    });
+
+    it('should filter admin assignments by status query parameter', async () => {
+      const res = await request(app)
+        .get('/api/v1/admin/assignments?status=ACCEPTED')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      res.body.data.items.forEach((item: any) => {
+        expect(item.status).toBe(AssignmentStatus.ACCEPTED);
+      });
+    });
+  });
 });

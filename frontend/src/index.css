@@ -713,7 +713,7 @@ a:hover {
 }
 
 /* ============================================================
-   Worker Management — Data Table
+   Worker Management & Assignment Tracking — Data Table
    ============================================================ */
 
 .data-table-wrap {
@@ -721,38 +721,41 @@ a:hover {
   overflow-x: auto;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  background: var(--bg-surface);
 }
 
 .data-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: var(--bg-surface);
-  min-width: 680px;
+  min-width: 760px;
 }
 
 .data-table thead th {
   text-align: left;
-  font-size: 0.7rem;
+  font-size: 0.725rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
-  padding: 11px 16px;
+  padding: 13px 18px;
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
-  background: var(--bg-page);
+  background: #f8fafc;
 }
 
 .data-table tbody tr {
-  transition: background-color 0.12s;
+  transition: background-color 0.15s ease;
 }
 
 .data-table tbody tr:hover {
-  background-color: var(--foodshare-green-soft);
+  background-color: rgba(234, 246, 240, 0.45);
 }
 
 .data-table tbody td {
-  padding: 12px 16px;
+  padding: 14px 18px;
   font-size: 0.875rem;
   color: var(--text-main);
   border-bottom: 1px solid var(--border-color);
@@ -823,18 +826,19 @@ a:hover {
    ============================================================ */
 
 .worker-avatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--foodshare-green-mint);
   color: var(--foodshare-green-dark);
   font-weight: 700;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   letter-spacing: 0.02em;
+  box-shadow: inset 0 0 0 1px rgba(18, 100, 62, 0.12);
 }
 
 .worker-avatar.large {
@@ -875,11 +879,12 @@ a:hover {
    ============================================================ */
 
 .copy-btn {
-  background: none;
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  padding: 2px 7px;
-  font-size: 0.72rem;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
   font-family: var(--font-family);
   color: var(--text-muted);
   cursor: pointer;
@@ -905,7 +910,8 @@ a:hover {
    Worker Management — Mobile Cards (≤ 768px)
    ============================================================ */
 
-.worker-mobile-cards {
+.worker-mobile-cards,
+.worker-cards-mobile {
   display: none;
 }
 
@@ -914,57 +920,66 @@ a:hover {
     display: none;
   }
 
-  .worker-mobile-cards {
+  .worker-mobile-cards,
+  .worker-cards-mobile {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
   }
 
   .worker-card-mobile {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 16px;
+    padding: 18px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .worker-card-mobile:hover {
+    box-shadow: var(--shadow-md);
   }
 
   .worker-card-mobile-header {
     display: flex;
     align-items: center;
     gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .worker-card-mobile-name {
-    font-weight: 600;
-    font-size: 0.95rem;
+    font-weight: 700;
+    font-size: 1rem;
     color: var(--text-main);
+    line-height: 1.3;
   }
 
   .worker-card-mobile-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.82rem;
+    font-size: 0.825rem;
     color: var(--text-muted);
-    gap: 8px;
+    gap: 10px;
   }
 
   .worker-card-mobile-label {
     font-weight: 600;
     color: var(--text-muted);
-    font-size: 0.72rem;
+    font-size: 0.725rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .worker-card-mobile-value {
     color: var(--text-main);
-    font-size: 0.82rem;
+    font-size: 0.825rem;
     text-align: right;
-    word-break: break-all;
+    word-break: break-word;
   }
 }
 
@@ -996,3 +1011,143 @@ a:hover {
   font-size: 0.8rem;
   color: var(--text-muted);
 }
+
+/* ============================================================
+   View Switcher Tabs
+   ============================================================ */
+.view-switcher-tabs {
+  display: inline-flex;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  gap: 4px;
+  border: 1px solid var(--border-color);
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.view-switcher-tab {
+  padding: 9px 18px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: all 0.15s ease-in-out;
+  font-family: var(--font-family);
+}
+
+.view-switcher-tab:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.view-switcher-tab.active {
+  color: var(--foodshare-green-dark);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.view-switcher-tab-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.view-switcher-tab.active .view-switcher-tab-count {
+  background: var(--foodshare-green-soft);
+  color: var(--foodshare-green-dark);
+}
+
+/* ============================================================
+   Filter Bar & Filter Chips
+   ============================================================ */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.filter-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: var(--font-family);
+  border-radius: 9999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.filter-chip:hover {
+  border-color: var(--foodshare-green-primary);
+  color: var(--foodshare-green-dark);
+  background: var(--foodshare-green-soft);
+}
+
+.filter-chip.active {
+  background: var(--foodshare-green-dark);
+  border-color: var(--foodshare-green-dark);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(18, 100, 62, 0.25);
+}
+
+/* ============================================================
+   History & Detail Timeline
+   ============================================================ */
+.assignment-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.assignment-timeline-item {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease;
+}
+
+.assignment-timeline-item:hover {
+  border-color: var(--foodshare-green-primary);
+}
+
