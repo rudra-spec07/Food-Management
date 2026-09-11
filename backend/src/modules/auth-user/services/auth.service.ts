@@ -6,7 +6,7 @@ import { PasswordService } from './password.service';
 import { SessionService } from './session.service';
 import { RegisterDto, LoginDto, ChangePasswordDto } from '../dto/auth.dto';
 import { AuthResponseDto, UserResponseDto } from '../types/auth.types';
-import { ConflictError, UnauthorizedError, NotFoundError } from '../../../shared/errors/app-error';
+import { ConflictError, UnauthorizedError, NotFoundError, BadRequestError } from '../../../shared/errors/app-error';
 
 export class AuthService {
   private userRepository = new UserRepository();
@@ -172,7 +172,7 @@ export class AuthService {
 
     const isCurrentPasswordValid = await PasswordService.verifyPassword(dto.currentPassword, user.passwordHash);
     if (!isCurrentPasswordValid) {
-      throw new UnauthorizedError('Current password is incorrect', 'AUTH_CURRENT_PASSWORD_INCORRECT');
+      throw new BadRequestError('Current password is incorrect', 'AUTH_CURRENT_PASSWORD_INCORRECT');
     }
 
     const newPasswordHash = await PasswordService.hashPassword(dto.newPassword);

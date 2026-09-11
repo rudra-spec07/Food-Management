@@ -61,16 +61,16 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiErrorResponse>) => {
-    if (error.response?.status === 401) {
+    const backendError = error.response?.data?.error;
+    const message = backendError?.message || error.message || 'An unexpected error occurred';
+    const code = backendError?.code || 'UNKNOWN_ERROR';
+
+    if (error.response?.status === 401 && code !== 'AUTH_CURRENT_PASSWORD_INCORRECT') {
       tokenStorage.removeToken();
       if (onUnauthorizedCallback) {
         onUnauthorizedCallback();
       }
     }
-
-    const backendError = error.response?.data?.error;
-    const message = backendError?.message || error.message || 'An unexpected error occurred';
-    const code = backendError?.code || 'UNKNOWN_ERROR';
 
     return Promise.reject({
       statusCode: error.response?.status || 500,

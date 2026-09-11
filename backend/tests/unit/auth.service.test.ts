@@ -1,4 +1,7 @@
 import { registerSchema, updateProfileSchema } from '../../src/modules/auth-user/dto/auth.dto';
+import { AuthService } from '../../src/modules/auth-user/services/auth.service';
+import { PasswordService } from '../../src/modules/auth-user/services/password.service';
+import { BadRequestError } from '../../src/shared/errors/app-error';
 
 describe('Auth & DTO Unit Tests', () => {
   describe('Email Normalization', () => {
@@ -50,6 +53,31 @@ describe('Auth & DTO Unit Tests', () => {
       expect(parsed.success).toBe(true);
       // DTO strip/ignores role field so it cannot reach service layer
       expect((parsed as any).data.role).toBeUndefined();
+    });
+  });
+
+  describe('Change Password Error Handling', () => {
+    it('should throw BadRequestError with AUTH_CURRENT_PASSWORD_INCORRECT when current password is wrong', async () => {
+      const authService = new AuthService();
+      const mockUser = {
+        id: 'user-123',
+        passwordHash: await PasswordService.hashPassword('CorrectPassword123!'),
+      };
+
+      jest.spyOn((authService as any).userRepository, 'findById').mockResolvedValue(mockUser);
+
+      try {
+        await authService.changePassword('user-123', {
+          currentPassword: 'WrongPassword123!',
+          newPassword: 'NewPassword123!',
+        });
+        expect(true).toBe(false); // Should not reach here
+      } catch (err: any) {
+        expect(err instanceof BadRequestError).toBe(true);
+        expect(err.statusCode).toBe(400);
+        expect(err.code).toBe('AUTH_CURRENT_PASSWORD_INCORRECT');
+        expect(err.message).toBe('Current password is incorrect');
+      }
     });
   });
 });
