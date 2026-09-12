@@ -14,6 +14,7 @@ export const createDistributionSchema = z
       .positive({ message: 'Quantity must be greater than 0' })
       .finite({ message: 'Quantity must be a finite number' }),
     unit: z.nativeEnum(DonationQuantityUnit).optional(),
+    reservationId: z.string().uuid({ message: 'Invalid reservationId format' }).optional(),
     notes: z
       .string()
       .trim()

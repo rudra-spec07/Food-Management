@@ -11,6 +11,7 @@ const controller = new InventoryController();
 router.use('/inventory', authenticate, requireRole(UserRole.ADMIN, UserRole.WORKER));
 
 router.get('/inventory/summary', controller.getSummary);
+router.get('/inventory/available', controller.getAvailableItems);
 router.get('/inventory/items', controller.getItems);
 router.get('/inventory/items/:inventoryId', controller.getItemDetail);
 router.get('/inventory/items/:inventoryId/history', controller.getItemHistory);

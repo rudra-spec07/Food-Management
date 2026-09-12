@@ -6,6 +6,7 @@ import { CreateDistributionPage } from '../pages/distributions/CreateDistributio
 import { DistributionDetailPage } from '../pages/distributions/DistributionDetailPage';
 import { distributionService } from '../services/distribution.service';
 import { inventoryService } from '../modules/inventory/services/inventory.service';
+import { reservationService } from '../services/reservation.service';
 
 vi.mock('../hooks/useAuth', () => ({
   useAuth: () => ({
@@ -100,6 +101,11 @@ describe('Frontend Module 05 — Distribution Unit & Component Tests', () => {
           },
         ],
         pagination: { page: 1, limit: 100, total: 1, totalPages: 1 },
+      });
+
+      vi.spyOn(reservationService, 'getReservations').mockResolvedValue({
+        items: [],
+        pagination: { page: 1, limit: 100, totalItems: 0, totalPages: 1 },
       });
 
       render(

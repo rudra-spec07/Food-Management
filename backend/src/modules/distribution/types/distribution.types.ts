@@ -5,6 +5,7 @@ export interface CreateDistributionInput {
   recipientName: string;
   quantity: number | string;
   unit?: DonationQuantityUnit;
+  reservationId?: string;
   notes?: string;
 }
 
@@ -19,6 +20,7 @@ export interface DistributionTransactionParams {
   recipientName: string;
   quantity: number;
   unit?: DonationQuantityUnit;
+  reservationId?: string;
   notes?: string;
   distributedBy: string;
   actorRole: UserRole;

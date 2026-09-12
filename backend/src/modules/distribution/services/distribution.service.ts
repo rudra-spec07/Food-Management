@@ -20,6 +20,7 @@ export class DistributionService {
       recipientName: input.recipientName,
       quantity: Number(input.quantity),
       unit: input.unit,
+      reservationId: input.reservationId,
       notes: input.notes,
       distributedBy,
       actorRole,

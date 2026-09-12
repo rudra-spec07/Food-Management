@@ -37,6 +37,19 @@ export class InventoryController {
     }
   };
 
+  public getAvailableItems = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsedQuery = inventoryQuerySchema.parse(req.query);
+      const result = await this.service.getAvailableItems(parsedQuery);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public getItemDetail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { inventoryId } = req.params;

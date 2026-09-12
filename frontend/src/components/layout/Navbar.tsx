@@ -64,6 +64,8 @@ export const Navbar: React.FC = () => {
     if (location.pathname === '/distributions') return 'Food Distribution Records';
     if (location.pathname === '/distributions/new') return 'Create Food Distribution';
     if (location.pathname.startsWith('/distributions/')) return 'Distribution Detail';
+    if (location.pathname === '/reservations') return 'Food Stock Reservations';
+    if (location.pathname.startsWith('/reservations/')) return 'Reservation Detail';
     if (location.pathname === '/profile') return 'User Profile Settings';
     if (location.pathname === '/change-password') return 'Security & Password';
     return 'FoodShare App';

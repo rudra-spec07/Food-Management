@@ -13,6 +13,7 @@ import adminWorkerRoutes from './modules/admin-workers/routes/admin-worker.route
 import pickupRoutes from './modules/pickup/routes/pickup.routes';
 import inventoryRoutes from './modules/inventory/routes/inventory.routes';
 import distributionRoutes from './modules/distribution/routes/distribution.routes';
+import reservationRoutes from './modules/reservation/routes/reservation.routes';
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/api/v1', assignmentRoutes);
 app.use('/api/v1', pickupRoutes);
 app.use('/api/v1', inventoryRoutes);
 app.use('/api/v1', distributionRoutes);
+app.use('/api/v1', reservationRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/donations', donationRoutes);

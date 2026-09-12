@@ -20,6 +20,8 @@ import { CollectionDetailPage } from './pages/collection/CollectionDetailPage';
 import { DistributionListPage } from './pages/distributions/DistributionListPage';
 import { CreateDistributionPage } from './pages/distributions/CreateDistributionPage';
 import { DistributionDetailPage } from './pages/distributions/DistributionDetailPage';
+import { ReservationListPage } from './pages/reservations/ReservationListPage';
+import { ReservationDetailPage } from './pages/reservations/ReservationDetailPage';
 import { InventoryDashboardPage } from './modules/inventory/pages/InventoryDashboardPage';
 import { InventoryListPage } from './modules/inventory/pages/InventoryListPage';
 import { InventoryDetailsPage } from './modules/inventory/pages/InventoryDetailsPage';
@@ -101,6 +103,8 @@ export const App: React.FC = () => {
               <Route path="/distributions" element={<DistributionListPage />} />
               <Route path="/distributions/new" element={<CreateDistributionPage />} />
               <Route path="/distributions/:distributionId" element={<DistributionDetailPage />} />
+              <Route path="/reservations" element={<ReservationListPage />} />
+              <Route path="/reservations/:reservationId" element={<ReservationDetailPage />} />
             </Route>
           </Route>
 

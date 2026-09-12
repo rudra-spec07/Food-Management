@@ -5,6 +5,8 @@ import {
   MovementType,
   AuditEventType,
   DistributionStatus,
+  ReservationStatus,
+  UserRole,
 } from '@prisma/client';
 import {
   NotFoundError,
@@ -112,7 +114,7 @@ export class DistributionRepository {
   public async executeCreateDistributionTransaction(
     params: DistributionTransactionParams
   ): Promise<any> {
-    return this.prisma.$transaction(async (tx) => {
+    const txResult = await this.prisma.$transaction(async (tx) => {
       // 1. Lock InventoryItem row using FOR UPDATE
       const lockedItems = await tx.$queryRaw<
         Array<{
@@ -175,20 +177,161 @@ export class DistributionRepository {
       const currentDistributed = new Prisma.Decimal(lockedItem.distributedQuantity);
       const currentTotal = new Prisma.Decimal(lockedItem.totalQuantity);
 
-      // 4. Quantity check
-      if (reqQuantity.gt(currentAvailable)) {
-        throw new ConflictError(
-          `Requested quantity (${reqQuantity.toString()}) exceeds available quantity (${currentAvailable.toString()})`,
-          'INSUFFICIENT_INVENTORY'
-        );
+      let newAvailable = currentAvailable;
+      let newReserved = currentReserved;
+      let newDistributed = currentDistributed;
+
+      const now = new Date();
+
+      if (params.reservationId) {
+        // MODE B — RESERVED FULFILLMENT
+        const lockedReservations = await tx.$queryRaw<
+          Array<{
+            id: string;
+            inventoryId: string;
+            reservedBy: string;
+            quantity: Prisma.Decimal;
+            unit: string;
+            status: ReservationStatus;
+            expiresAt: Date;
+          }>
+        >`
+          SELECT
+            id,
+            inventory_id AS "inventoryId",
+            reserved_by AS "reservedBy",
+            quantity,
+            unit,
+            status,
+            expires_at AS "expiresAt"
+          FROM inventory_reservations
+          WHERE id = ${params.reservationId}::uuid
+          FOR UPDATE
+        `;
+
+        if (!lockedReservations || lockedReservations.length === 0) {
+          throw new NotFoundError('Reservation not found', 'RESERVATION_NOT_FOUND');
+        }
+
+        const lockedReservation = lockedReservations[0];
+
+        if (lockedReservation.inventoryId !== params.inventoryId) {
+          throw new BadRequestError(
+            'Reservation does not belong to specified inventory batch',
+            'RESERVATION_MISMATCH'
+          );
+        }
+
+        // WORKER IDOR protection
+        if (params.actorRole === UserRole.WORKER && lockedReservation.reservedBy !== params.distributedBy) {
+          throw new NotFoundError('Reservation not found', 'RESERVATION_NOT_FOUND');
+        }
+
+        // Lazy expiration check
+        if (
+          lockedReservation.status === ReservationStatus.ACTIVE &&
+          new Date(lockedReservation.expiresAt) <= now
+        ) {
+          const resQty = new Prisma.Decimal(lockedReservation.quantity);
+          const adjReserved = Prisma.Decimal.max(0, currentReserved.minus(resQty));
+          const isFoodExp = (lockedItem as any).expirationDate && new Date((lockedItem as any).expirationDate) <= now;
+          let adjAvailable = currentAvailable;
+          let adjTotal = currentTotal;
+          let adjStatus: InventoryStatus = lockedItem.status as InventoryStatus;
+
+          if (isFoodExp) {
+            adjStatus = InventoryStatus.EXPIRED;
+            adjTotal = Prisma.Decimal.max(0, currentTotal.minus(resQty));
+          } else {
+            adjAvailable = currentAvailable.plus(resQty);
+            if (adjAvailable.gt(0)) adjStatus = InventoryStatus.AVAILABLE;
+          }
+
+          // Invariant check: available + reserved + distributed === total
+          const invSum = adjAvailable.plus(adjReserved).plus(currentDistributed);
+          if (!invSum.equals(adjTotal)) {
+            throw new ConflictError(
+              'Inventory quantity invariant violation during lazy expiration in distribution',
+              'INVENTORY_INVARIANT_VIOLATION'
+            );
+          }
+
+          await tx.inventoryReservation.update({
+            where: { id: params.reservationId },
+            data: { status: ReservationStatus.EXPIRED },
+          });
+
+          await tx.inventoryItem.update({
+            where: { id: params.inventoryId },
+            data: {
+              totalQuantity: adjTotal,
+              availableQuantity: adjAvailable,
+              reservedQuantity: adjReserved,
+              status: adjStatus,
+            },
+          });
+
+          await tx.inventoryMovement.create({
+            data: {
+              inventoryId: params.inventoryId,
+              movementType: isFoodExp ? MovementType.EXPIRATION_DISCARD : MovementType.RELEASE,
+              quantity: resQty,
+              unit: effectiveUnit,
+              previousAvailableQuantity: currentAvailable,
+              resultingAvailableQuantity: adjAvailable,
+              referenceType: 'RESERVATION_EXPIRATION',
+              referenceId: params.reservationId,
+              actorId: params.distributedBy,
+              actorRole: params.actorRole,
+              notes: 'Lazy expiration during distribution attempt',
+            },
+          });
+
+          return { isExpired: true };
+        }
+
+        if (lockedReservation.status !== ReservationStatus.ACTIVE) {
+          throw new ConflictError(
+            `Reservation is not in ACTIVE state. Current status: ${lockedReservation.status}`,
+            'RESERVATION_STATE_CONFLICT'
+          );
+        }
+
+        const resQuantity = new Prisma.Decimal(lockedReservation.quantity);
+        // MVP Exact Fulfillment Rule: request.quantity must equal reservation.quantity
+        if (!reqQuantity.equals(resQuantity)) {
+          throw new BadRequestError(
+            `Distribution quantity (${reqQuantity.toString()}) must equal full reservation quantity (${resQuantity.toString()}) for fulfillment`,
+            'INVALID_RESERVATION_FULFILLMENT_QUANTITY'
+          );
+        }
+
+        newReserved = Prisma.Decimal.max(0, currentReserved.minus(reqQuantity));
+        newDistributed = currentDistributed.plus(reqQuantity);
+
+        // Update reservation to FULFILLED
+        await tx.inventoryReservation.update({
+          where: { id: params.reservationId },
+          data: {
+            status: ReservationStatus.FULFILLED,
+            fulfilledAt: now,
+          },
+        });
+      } else {
+        // MODE A — STANDARD DISTRIBUTION
+        if (reqQuantity.gt(currentAvailable)) {
+          throw new ConflictError(
+            `Requested quantity (${reqQuantity.toString()}) exceeds available quantity (${currentAvailable.toString()})`,
+            'INSUFFICIENT_INVENTORY'
+          );
+        }
+
+        newAvailable = currentAvailable.minus(reqQuantity);
+        newDistributed = currentDistributed.plus(reqQuantity);
       }
 
-      // 5. Deduct available & increase distributed
-      const newAvailable = currentAvailable.minus(reqQuantity);
-      const newDistributed = currentDistributed.plus(reqQuantity);
-
-      // 6. Invariant check: available + reserved + distributed = total
-      const invariantSum = newAvailable.plus(currentReserved).plus(newDistributed);
+      // Invariant check: available + reserved + distributed = total
+      const invariantSum = newAvailable.plus(newReserved).plus(newDistributed);
       if (!invariantSum.equals(currentTotal)) {
         throw new ConflictError(
           'Inventory quantity invariant violation detected',
@@ -196,11 +339,11 @@ export class DistributionRepository {
         );
       }
 
-      // 7. Determine status
+      // Determine status
       let newStatus: InventoryStatus;
       if (newDistributed.equals(currentTotal)) {
         newStatus = InventoryStatus.DISTRIBUTED;
-      } else if (newAvailable.equals(0) && currentReserved.gt(0)) {
+      } else if (newAvailable.equals(0) && newReserved.gt(0)) {
         newStatus = InventoryStatus.RESERVED;
       } else if (newAvailable.gt(0)) {
         newStatus = InventoryStatus.AVAILABLE;
@@ -208,11 +351,12 @@ export class DistributionRepository {
         newStatus = lockedItem.status;
       }
 
-      // 8. Update InventoryItem
+      // Update InventoryItem
       await tx.inventoryItem.update({
         where: { id: params.inventoryId },
         data: {
           availableQuantity: newAvailable,
+          reservedQuantity: newReserved,
           distributedQuantity: newDistributed,
           status: newStatus,
         },
@@ -291,5 +435,11 @@ export class DistributionRepository {
 
       return distributionRecord;
     });
+
+    if (txResult && (txResult as any).isExpired) {
+      throw new ConflictError('Reservation has expired', 'RESERVATION_EXPIRED');
+    }
+
+    return txResult;
   }
 }

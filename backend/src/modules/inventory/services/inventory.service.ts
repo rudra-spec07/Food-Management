@@ -61,6 +61,50 @@ export class InventoryService {
     };
   }
 
+  public async getAvailableItems(query: InventoryQueryDTO): Promise<{
+    items: InventoryItemResponse[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }> {
+    const [rawItems, total] = await this.repository.findAvailableItems(query);
+    const totalPages = Math.ceil(total / query.limit) || 1;
+
+    const items: InventoryItemResponse[] = rawItems.map((item) => ({
+      id: item.id,
+      donationId: item.donationId,
+      pickupId: item.pickupId,
+      foodCategory: item.foodCategory,
+      description: item.description,
+      totalQuantity: Number(item.totalQuantity),
+      availableQuantity: Number(item.availableQuantity),
+      reservedQuantity: Number(item.reservedQuantity),
+      distributedQuantity: Number(item.distributedQuantity),
+      unit: item.unit,
+      status: item.status,
+      location: item.location,
+      expirationDate: item.expirationDate ? item.expirationDate.toISOString() : null,
+      receivedAt: item.receivedAt.toISOString(),
+      donorReference: item.donorReference,
+      createdAt: item.createdAt.toISOString(),
+      updatedAt: item.updatedAt.toISOString(),
+      donation: item.donation,
+    }));
+
+    return {
+      items,
+      pagination: {
+        page: query.page,
+        limit: query.limit,
+        total,
+        totalPages,
+      },
+    };
+  }
+
   public async getItemDetail(inventoryId: string): Promise<InventoryItemResponse | null> {
     const item = await this.repository.findItemDetail(inventoryId);
     if (!item) return null;

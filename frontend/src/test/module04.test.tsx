@@ -731,7 +731,7 @@ describe('Frontend Module 04 — Unit & Component Tests', () => {
         </MemoryRouter>
       );
       expect(
-        screen.getByText(/Integration Notice — Collection Backend Module Pending/i)
+        screen.getByText(/Available Food Collections/i)
       ).toBeInTheDocument();
     });
 

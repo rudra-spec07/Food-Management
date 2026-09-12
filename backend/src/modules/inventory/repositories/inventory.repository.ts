@@ -124,6 +124,71 @@ export class InventoryRepository {
     return [items, total];
   }
 
+  public async findAvailableItems(options: {
+    page: number;
+    limit: number;
+    search?: string;
+    foodCategory?: DonationCategory;
+  }): Promise<[any[], number]> {
+    const skip = (options.page - 1) * options.limit;
+    const now = new Date();
+    const where: Prisma.InventoryItemWhereInput = {
+      status: InventoryStatus.AVAILABLE,
+      availableQuantity: { gt: 0 },
+      OR: [
+        { expirationDate: null },
+        { expirationDate: { gt: now } },
+      ],
+    };
+
+    if (options.foodCategory) {
+      where.foodCategory = options.foodCategory;
+    }
+    if (options.search) {
+      const s = options.search.trim();
+      where.AND = [
+        {
+          OR: [
+            { description: { contains: s, mode: 'insensitive' } },
+            { location: { contains: s, mode: 'insensitive' } },
+            { donorReference: { contains: s, mode: 'insensitive' } },
+          ],
+        },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.inventoryItem.findMany({
+        where,
+        skip,
+        take: options.limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          donation: {
+            select: {
+              id: true,
+              category: true,
+              description: true,
+              contactName: true,
+              contactPhone: true,
+              donor: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.inventoryItem.count({ where }),
+    ]);
+
+    return [items, total];
+  }
+
   public async findItemDetail(inventoryId: string): Promise<any | null> {
     return this.prisma.inventoryItem.findUnique({
       where: { id: inventoryId },

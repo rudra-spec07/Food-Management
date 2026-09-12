@@ -146,6 +146,7 @@ model User {
   actorPickupEvents    PickupEvent[]           @relation("ActorPickupEvents")
   actorInventoryMovements InventoryMovement[]  @relation("ActorInventoryMovements")
   distributionRecords  DistributionRecord[]    @relation("UserDistributionRecords")
+  reservations         InventoryReservation[]  @relation("UserReservations")
 
   @@map("users")
 }
@@ -365,6 +366,7 @@ model InventoryItem {
   pickup              Pickup               @relation(fields: [pickupId], references: [id], onDelete: Restrict)
   movements           InventoryMovement[]
   distributionRecords DistributionRecord[]
+  reservations        InventoryReservation[]
 
   @@index([status])
   @@index([foodCategory])
@@ -420,4 +422,36 @@ model DistributionRecord {
   @@index([distributedBy])
   @@index([distributedAt(sort: Desc)])
   @@map("distribution_records")
+}
+
+enum ReservationStatus {
+  ACTIVE
+  RELEASED
+  FULFILLED
+  EXPIRED
+  CANCELLED
+}
+
+model InventoryReservation {
+  id            String               @id @default(uuid()) @db.Uuid
+  inventoryId   String               @map("inventory_id") @db.Uuid
+  reservedBy    String               @map("reserved_by") @db.Uuid
+  quantity      Decimal              @map("quantity") @db.Decimal(10, 2)
+  unit          DonationQuantityUnit @map("unit")
+  status        ReservationStatus    @default(ACTIVE) @map("status")
+  notes         String?              @map("notes") @db.Text
+  expiresAt     DateTime             @map("expires_at") @db.Timestamptz
+  fulfilledAt   DateTime?            @map("fulfilled_at") @db.Timestamptz
+  cancelledAt   DateTime?            @map("cancelled_at") @db.Timestamptz
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  inventory     InventoryItem        @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
+  reserver      User                 @relation("UserReservations", fields: [reservedBy], references: [id], onDelete: Restrict)
+
+  @@index([inventoryId])
+  @@index([reservedBy])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("inventory_reservations")
 }
