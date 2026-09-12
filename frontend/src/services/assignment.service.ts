@@ -61,6 +61,10 @@ export interface Assignment {
   donation?: DonationCandidate;
   worker?: WorkerInfo;
   assignedBy?: DonorInfo;
+  pickup?: {
+    id: string;
+    status: string;
+  } | null;
 }
 
 export interface ApiResponse<T> {

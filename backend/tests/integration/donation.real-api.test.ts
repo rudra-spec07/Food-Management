@@ -228,7 +228,7 @@ describe('Real Neon Database Integration & Security Tests — Module 02 (Donatio
       // Verify status history
       const dbDonation = await prisma.donation.findUnique({
         where: { id: createdDonationId },
-        include: { statusHistory: true },
+        include: { statusHistory: { orderBy: { changedAt: 'asc' } } },
       });
       expect(dbDonation?.status).toBe(DonationStatus.CANCELLED);
       expect(dbDonation?.statusHistory.length).toBe(2);

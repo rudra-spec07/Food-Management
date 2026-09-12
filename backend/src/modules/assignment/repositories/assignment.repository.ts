@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma, DonationStatus, AssignmentStatus, AuditEventType, UserRole, UserStatus } from '@prisma/client';
+import { PrismaClient, Prisma, DonationStatus, AssignmentStatus, AuditEventType, UserRole, UserStatus, PickupStatus, PickupEventType } from '@prisma/client';
 import { ConflictError, NotFoundError, BadRequestError } from '../../../shared/errors/app-error';
 
 const globalPrisma = new PrismaClient();
@@ -223,6 +223,12 @@ export class AssignmentRepository {
               },
             },
           },
+          pickup: {
+            select: {
+              id: true,
+              status: true,
+            },
+          },
         },
       }),
       this.prisma.assignment.count({ where }),
@@ -260,6 +266,12 @@ export class AssignmentRepository {
             firstName: true,
             lastName: true,
             email: true,
+          },
+        },
+        pickup: {
+          select: {
+            id: true,
+            status: true,
           },
         },
       },
@@ -515,7 +527,28 @@ export class AssignmentRepository {
         },
       });
 
-      return { updatedAssignment, updatedDonation };
+      // 12. Create Pickup entity (NOT_STARTED) and PickupEvent (PICKUP_CREATED)
+      const pickup = await tx.pickup.create({
+        data: {
+          donationId: lockedAssignment.donation_id,
+          assignmentId: params.assignmentId,
+          workerId: params.workerId,
+          status: PickupStatus.NOT_STARTED,
+        },
+      });
+
+      await tx.pickupEvent.create({
+        data: {
+          pickupId: pickup.id,
+          eventType: PickupEventType.PICKUP_CREATED,
+          actorId: params.workerId,
+          actorRole: UserRole.WORKER,
+          toStatus: PickupStatus.NOT_STARTED,
+          notes: 'Pickup created upon assignment acceptance',
+        },
+      });
+
+      return { updatedAssignment, updatedDonation, pickup };
     });
   }
 

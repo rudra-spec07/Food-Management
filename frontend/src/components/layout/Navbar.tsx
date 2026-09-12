@@ -54,6 +54,10 @@ export const Navbar: React.FC = () => {
     if (location.pathname === '/admin/workers') return 'Worker Account Provisioning';
     if (location.pathname === '/admin/donations/assignments') return 'Worker Assignment Queue';
     if (location.pathname === '/worker/assignments') return 'My Assigned Tasks';
+    if (location.pathname === '/inventory') return 'Inventory & Food Availability';
+    if (location.pathname === '/inventory/items') return 'Inventory Stock Items';
+    if (location.pathname.endsWith('/history') && location.pathname.startsWith('/inventory/items/')) return 'Inventory Movement History';
+    if (location.pathname.startsWith('/inventory/items/')) return 'Inventory Batch Detail';
     if (location.pathname === '/collection/available') return 'Available Food Collections';
     if (location.pathname === '/collection') return 'Collection History';
     if (location.pathname.startsWith('/collection/')) return 'Collection Detail';

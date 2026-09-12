@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { assignmentService, Assignment } from '../../../services/assignment.service';
-import { ClipboardList, CheckCircle, XCircle, RefreshCw, AlertCircle, MapPin, Calendar, Phone, Info } from 'lucide-react';
+import { ClipboardList, CheckCircle, XCircle, RefreshCw, AlertCircle, MapPin, Calendar, Phone, Info, Truck } from 'lucide-react';
 
 export const WorkerAssignmentsPage: React.FC = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -245,6 +246,23 @@ export const WorkerAssignmentsPage: React.FC = () => {
                   >
                     <Info size={14} style={{ marginRight: '6px' }} /> View Details
                   </button>
+
+                  {item.status === 'ACCEPTED' && (
+                    item.pickup?.id ? (
+                      <Link
+                        to={`/worker/pickups/${item.pickup.id}`}
+                        className="btn btn-primary"
+                        style={{ width: '100%', fontSize: '0.85rem', padding: '8px 12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                      >
+                        <Truck size={14} />
+                        <span>Manage Pickup</span>
+                      </Link>
+                    ) : (
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', padding: '6px', backgroundColor: 'var(--bg-muted)', borderRadius: 'var(--radius-sm)' }}>
+                        Pickup record initializing...
+                      </div>
+                    )
+                  )}
 
                   {isPending && (
                     <div style={{ display: 'flex', gap: '10px' }}>

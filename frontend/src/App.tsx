@@ -13,12 +13,17 @@ import { AdminDonationReviewPage } from './modules/admin/pages/AdminDonationRevi
 import { AdminWorkerProvisioningPage } from './modules/admin/pages/AdminWorkerProvisioningPage';
 import { AdminAssignmentQueuePage } from './modules/admin/pages/AdminAssignmentQueuePage';
 import { WorkerAssignmentsPage } from './modules/worker/pages/WorkerAssignmentsPage';
+import { WorkerPickupDetailPage } from './modules/worker/pages/WorkerPickupDetailPage';
 import { AvailableFoodPage } from './pages/collection/AvailableFoodPage';
 import { CollectionHistoryPage } from './pages/collection/CollectionHistoryPage';
 import { CollectionDetailPage } from './pages/collection/CollectionDetailPage';
 import { DistributionListPage } from './pages/distributions/DistributionListPage';
 import { CreateDistributionPage } from './pages/distributions/CreateDistributionPage';
 import { DistributionDetailPage } from './pages/distributions/DistributionDetailPage';
+import { InventoryDashboardPage } from './modules/inventory/pages/InventoryDashboardPage';
+import { InventoryListPage } from './modules/inventory/pages/InventoryListPage';
+import { InventoryDetailsPage } from './modules/inventory/pages/InventoryDetailsPage';
+import { InventoryHistoryPage } from './modules/inventory/pages/InventoryHistoryPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
 import { ChangePasswordPage } from './pages/profile/ChangePasswordPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -79,12 +84,17 @@ export const App: React.FC = () => {
           <Route element={<ProtectedRoute allowedRoles={['WORKER']} />}>
             <Route element={<AppLayout />}>
               <Route path="/worker/assignments" element={<WorkerAssignmentsPage />} />
+              <Route path="/worker/pickups/:pickupId" element={<WorkerPickupDetailPage />} />
             </Route>
           </Route>
 
           {/* Protected Operational Routes (Worker & Admin) */}
           <Route element={<ProtectedRoute allowedRoles={['WORKER', 'ADMIN']} />}>
             <Route element={<AppLayout />}>
+              <Route path="/inventory" element={<InventoryDashboardPage />} />
+              <Route path="/inventory/items" element={<InventoryListPage />} />
+              <Route path="/inventory/items/:inventoryId" element={<InventoryDetailsPage />} />
+              <Route path="/inventory/items/:inventoryId/history" element={<InventoryHistoryPage />} />
               <Route path="/collection/available" element={<AvailableFoodPage />} />
               <Route path="/collection" element={<CollectionHistoryPage />} />
               <Route path="/collection/:collectionId" element={<CollectionDetailPage />} />

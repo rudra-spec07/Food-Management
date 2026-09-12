@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Package } from 'lucide-react';
+import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Layers } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
   const { user } = useAuth();
@@ -18,13 +18,13 @@ export const BottomNav: React.FC = () => {
       ? [
           { label: 'Review', path: '/admin/donations/review', icon: ClipboardCheck },
           { label: 'Workers', path: '/admin/workers', icon: UserPlus },
-          { label: 'Assign', path: '/admin/donations/assignments', icon: ClipboardList },
+          { label: 'Inventory', path: '/inventory', icon: Layers },
         ]
       : []),
     ...(user.role === 'WORKER'
       ? [
           { label: 'My Tasks', path: '/worker/assignments', icon: ClipboardList },
-          { label: 'Available', path: '/collection/available', icon: Package },
+          { label: 'Inventory', path: '/inventory', icon: Layers },
         ]
       : []),
   ];

@@ -35,6 +35,49 @@ enum AuditEventType {
   ASSIGNMENT_ACCEPTED
   ASSIGNMENT_REJECTED
   WORKER_CREATED
+  PICKUP_CREATED
+  PICKUP_STARTED
+  PICKUP_COMPLETED
+  PICKUP_FAILED
+  DONATION_COMPLETED
+  INVENTORY_CREATED
+  INVENTORY_INCREASED
+  INVENTORY_RESERVED
+  INVENTORY_RELEASED
+  INVENTORY_DISTRIBUTED
+  INVENTORY_ADJUSTED
+}
+
+enum InventoryStatus {
+  AVAILABLE
+  RESERVED
+  DISTRIBUTED
+  EXPIRED
+  DISCARDED
+}
+
+enum MovementType {
+  INFLOW
+  OUTFLOW
+  RESERVATION
+  RELEASE
+  EXPIRATION_DISCARD
+  ADJUSTMENT
+}
+
+enum PickupStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PickupEventType {
+  PICKUP_CREATED
+  PICKUP_STARTED
+  PICKUP_COMPLETED
+  PICKUP_FAILED
 }
 
 enum AssignmentStatus {
@@ -99,6 +142,10 @@ model User {
   donationReviews      DonationReview[]
   workerAssignments    Assignment[]            @relation("WorkerAssignments")
   adminAssignments     Assignment[]            @relation("AdminAssignments")
+  workerPickups        Pickup[]                @relation("WorkerPickups")
+  actorPickupEvents    PickupEvent[]           @relation("ActorPickupEvents")
+  actorInventoryMovements InventoryMovement[]  @relation("ActorInventoryMovements")
+  distributionRecords  DistributionRecord[]    @relation("UserDistributionRecords")
 
   @@map("users")
 }
@@ -163,6 +210,8 @@ model Donation {
   statusHistory   DonationStatusHistory[]
   review          DonationReview?
   assignments     Assignment[]
+  pickups         Pickup[]
+  inventoryItem   InventoryItem?
 
   @@index([donorId])
   @@index([status])
@@ -236,6 +285,7 @@ model Assignment {
   donation        Donation         @relation(fields: [donationId], references: [id], onDelete: Restrict)
   worker          User             @relation("WorkerAssignments", fields: [workerId], references: [id], onDelete: Restrict)
   assigner        User             @relation("AdminAssignments", fields: [assignedBy], references: [id], onDelete: Restrict)
+  pickup          Pickup?
 
   @@index([workerId])
   @@index([donationId])
@@ -243,4 +293,131 @@ model Assignment {
   @@index([workerId, status])
   @@index([donationId, createdAt(sort: Desc)])
   @@map("assignments")
+}
+
+model Pickup {
+  id              String         @id @default(uuid()) @db.Uuid
+  donationId      String         @map("donation_id") @db.Uuid
+  assignmentId    String         @unique @map("assignment_id") @db.Uuid
+  workerId        String         @map("worker_id") @db.Uuid
+  status          PickupStatus   @default(NOT_STARTED) @map("status")
+  startedAt       DateTime?      @map("started_at") @db.Timestamptz
+  completedAt     DateTime?      @map("completed_at") @db.Timestamptz
+  failedAt        DateTime?      @map("failed_at") @db.Timestamptz
+  failureReason   String?        @map("failure_reason") @db.Text
+  completionNotes String?        @map("completion_notes") @db.Text
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  donation        Donation       @relation(fields: [donationId], references: [id], onDelete: Restrict)
+  assignment      Assignment     @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
+  worker          User           @relation("WorkerPickups", fields: [workerId], references: [id], onDelete: Restrict)
+  events          PickupEvent[]
+  inventoryItem   InventoryItem?
+
+  @@index([workerId])
+  @@index([status])
+  @@index([workerId, status])
+  @@index([donationId])
+  @@index([createdAt(sort: Desc)])
+  @@map("pickups")
+}
+
+model PickupEvent {
+  id         String          @id @default(uuid()) @db.Uuid
+  pickupId   String          @map("pickup_id") @db.Uuid
+  eventType  PickupEventType @map("event_type")
+  actorId    String          @map("actor_id") @db.Uuid
+  actorRole  UserRole        @map("actor_role")
+  fromStatus PickupStatus?   @map("from_status")
+  toStatus   PickupStatus    @map("to_status")
+  notes      String?         @map("notes") @db.Text
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  pickup     Pickup          @relation(fields: [pickupId], references: [id], onDelete: Cascade)
+  actor      User            @relation("ActorPickupEvents", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([pickupId])
+  @@index([createdAt])
+  @@map("pickup_events")
+}
+
+model InventoryItem {
+  id                  String               @id @default(uuid()) @db.Uuid
+  donationId          String               @unique @map("donation_id") @db.Uuid
+  pickupId            String               @unique @map("pickup_id") @db.Uuid
+  foodCategory        DonationCategory     @map("food_category")
+  description         String               @map("description") @db.Text
+  totalQuantity       Decimal              @map("total_quantity") @db.Decimal(10, 2)
+  availableQuantity   Decimal              @map("available_quantity") @db.Decimal(10, 2)
+  reservedQuantity    Decimal              @default(0) @map("reserved_quantity") @db.Decimal(10, 2)
+  distributedQuantity Decimal              @default(0) @map("distributed_quantity") @db.Decimal(10, 2)
+  unit                DonationQuantityUnit @map("unit")
+  status              InventoryStatus      @default(AVAILABLE) @map("status")
+  location            String?              @map("location") @db.VarChar(255)
+  expirationDate      DateTime?            @map("expiration_date") @db.Timestamptz
+  receivedAt          DateTime             @default(now()) @map("received_at") @db.Timestamptz
+  donorReference      String?              @map("donor_reference") @db.VarChar(255)
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  donation            Donation             @relation(fields: [donationId], references: [id], onDelete: Restrict)
+  pickup              Pickup               @relation(fields: [pickupId], references: [id], onDelete: Restrict)
+  movements           InventoryMovement[]
+  distributionRecords DistributionRecord[]
+
+  @@index([status])
+  @@index([foodCategory])
+  @@index([expirationDate])
+  @@index([createdAt(sort: Desc)])
+  @@map("inventory_items")
+}
+
+model InventoryMovement {
+  id                         String               @id @default(uuid()) @db.Uuid
+  inventoryId                String               @map("inventory_id") @db.Uuid
+  movementType               MovementType         @map("movement_type")
+  quantity                   Decimal              @map("quantity") @db.Decimal(10, 2)
+  unit                       DonationQuantityUnit @map("unit")
+  previousAvailableQuantity  Decimal              @map("previous_available_quantity") @db.Decimal(10, 2)
+  resultingAvailableQuantity Decimal              @map("resulting_available_quantity") @db.Decimal(10, 2)
+  referenceType              String?              @map("reference_type") @db.VarChar(50)
+  referenceId                String?              @map("reference_id") @db.Uuid
+  actorId                    String               @map("actor_id") @db.Uuid
+  actorRole                  UserRole             @map("actor_role")
+  notes                      String?              @map("notes") @db.Text
+  createdAt                  DateTime             @default(now()) @map("created_at") @db.Timestamptz
+
+  inventory                  InventoryItem        @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  actor                      User                 @relation("ActorInventoryMovements", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([inventoryId])
+  @@index([createdAt(sort: Desc)])
+  @@map("inventory_movements")
+}
+
+enum DistributionStatus {
+  COMPLETED
+}
+
+model DistributionRecord {
+  id            String               @id @default(uuid()) @db.Uuid
+  inventoryId   String               @map("inventory_id") @db.Uuid
+  distributedBy String               @map("distributed_by") @db.Uuid
+  recipientName String               @map("recipient_name") @db.VarChar(255)
+  quantity      Decimal              @map("quantity") @db.Decimal(10, 2)
+  unit          DonationQuantityUnit @map("unit")
+  status        DistributionStatus   @default(COMPLETED) @map("status")
+  notes         String?              @map("notes") @db.Text
+  distributedAt DateTime             @default(now()) @map("distributed_at") @db.Timestamptz
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  inventory     InventoryItem        @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
+  distributor   User                 @relation("UserDistributionRecords", fields: [distributedBy], references: [id], onDelete: Restrict)
+
+  @@index([inventoryId])
+  @@index([distributedBy])
+  @@index([distributedAt(sort: Desc)])
+  @@map("distribution_records")
 }

@@ -170,6 +170,12 @@ describe('Module 04 — Real Database Integration, Security & Concurrency Tests'
       await prisma.donationStatusHistory.deleteMany({
         where: { donationId: { in: [testDonation1Id, testDonation2Id, testExpiredDonationId] } },
       });
+      await prisma.pickupEvent.deleteMany({
+        where: { pickup: { donationId: { in: [testDonation1Id, testDonation2Id, testExpiredDonationId] } } },
+      });
+      await prisma.pickup.deleteMany({
+        where: { donationId: { in: [testDonation1Id, testDonation2Id, testExpiredDonationId] } },
+      });
       await prisma.assignment.deleteMany({
         where: { donationId: { in: [testDonation1Id, testDonation2Id, testExpiredDonationId] } },
       });
@@ -479,6 +485,8 @@ describe('Module 04 — Real Database Integration, Security & Concurrency Tests'
       await prisma.outboxEvent.deleteMany({ where: { aggregateId: donation.id } });
       await prisma.auditLog.deleteMany({ where: { entityId: assignmentId } });
       await prisma.donationStatusHistory.deleteMany({ where: { donationId: donation.id } });
+      await prisma.pickupEvent.deleteMany({ where: { pickup: { donationId: donation.id } } });
+      await prisma.pickup.deleteMany({ where: { donationId: donation.id } });
       await prisma.assignment.deleteMany({ where: { donationId: donation.id } });
       await prisma.donation.delete({ where: { id: donation.id } });
     });

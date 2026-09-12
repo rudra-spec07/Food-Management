@@ -735,14 +735,14 @@ describe('Frontend Module 04 — Unit & Component Tests', () => {
       ).toBeInTheDocument();
     });
 
-    it('renders Distribution integration notice banner cleanly', () => {
+    it('renders Distribution list page cleanly', async () => {
       render(
         <MemoryRouter>
           <DistributionListPage />
         </MemoryRouter>
       );
       expect(
-        screen.getByText(/Integration Notice — Distribution Backend Module Pending/i)
+        await screen.findByText(/Food Distribution Records/i)
       ).toBeInTheDocument();
     });
   });
