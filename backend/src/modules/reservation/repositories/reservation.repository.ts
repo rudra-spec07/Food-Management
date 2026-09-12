@@ -148,6 +148,7 @@ export class ReservationRepository {
           status: InventoryStatus;
           expirationDate?: Date;
         }>
+      >`
         SELECT
           id,
           total_quantity AS "totalQuantity",
