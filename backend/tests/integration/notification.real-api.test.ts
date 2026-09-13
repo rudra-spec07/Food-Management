@@ -207,8 +207,13 @@ describe('Module 06 — Notifications & Communication Integration & Security Tes
     });
 
     it('should process email delivery batch and transition delivery state to SENT', async () => {
-      const deliveredCount = await notificationWorker.processDeliveryBatch();
-      expect(deliveredCount).toBeGreaterThanOrEqual(1);
+      let totalDelivered = 0;
+      let count = 0;
+      do {
+        count = await notificationWorker.processDeliveryBatch();
+        totalDelivered += count;
+      } while (count > 0);
+      expect(totalDelivered).toBeGreaterThanOrEqual(1);
 
       const delivery = await prisma.notificationDelivery.findFirst({
         where: {

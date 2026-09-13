@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FoodShareLogo } from '../common/FoodShareLogo';
 import { ProfileAvatar } from '../common/ProfileAvatar';
+import { NotificationBell } from './NotificationBell';
 import { User as UserIcon, KeyRound, LogOut, ChevronDown } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -66,6 +67,8 @@ export const Navbar: React.FC = () => {
     if (location.pathname.startsWith('/distributions/')) return 'Distribution Detail';
     if (location.pathname === '/reservations') return 'Food Stock Reservations';
     if (location.pathname.startsWith('/reservations/')) return 'Reservation Detail';
+    if (location.pathname === '/notifications') return 'Notifications & Inbox';
+    if (location.pathname === '/notification-preferences') return 'Notification Preferences';
     if (location.pathname === '/profile') return 'User Profile Settings';
     if (location.pathname === '/change-password') return 'Security & Password';
     return 'FoodShare App';
@@ -87,6 +90,9 @@ export const Navbar: React.FC = () => {
 
       {/* Right: User Identity & Dynamic Profile Avatar Dropdown */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }} ref={dropdownRef}>
+        {/* Notification Bell Component */}
+        <NotificationBell />
+
         {/* User Name and Role Badge (Desktop & Tablet) */}
         <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }} className="user-header-info">
           <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-main)' }} className="user-header-name">

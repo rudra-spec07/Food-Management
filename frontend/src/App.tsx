@@ -28,6 +28,8 @@ import { InventoryDetailsPage } from './modules/inventory/pages/InventoryDetails
 import { InventoryHistoryPage } from './modules/inventory/pages/InventoryHistoryPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
 import { ChangePasswordPage } from './pages/profile/ChangePasswordPage';
+import { NotificationListPage } from './pages/notifications/NotificationListPage';
+import { NotificationPreferencesPage } from './pages/notifications/NotificationPreferencesPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { useAuth } from './hooks/useAuth';
 
@@ -68,6 +70,8 @@ export const App: React.FC = () => {
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/donations" element={<DonorDashboardPage />} />
+              <Route path="/notifications" element={<NotificationListPage />} />
+              <Route path="/notification-preferences" element={<NotificationPreferencesPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/change-password" element={<ChangePasswordPage />} />
             </Route>

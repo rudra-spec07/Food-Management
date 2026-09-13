@@ -111,5 +111,18 @@ describe('Module 06 — Template Engine & Security Unit Tests', () => {
       expect(rendered.emailHtml).toContain('&lt;tag&gt;');
       expect(rendered.emailHtml).not.toContain('<tag>');
     });
+
+    it('should render INVENTORY_DISTRIBUTED template safely with recipientName', () => {
+      const distContext = {
+        quantity: '20',
+        unit: 'KG',
+        recipientName: 'Community Kitchen <script>',
+      };
+      const rendered = renderTemplate('INVENTORY_DISTRIBUTED', distContext);
+      expect(rendered.title).toBe('Food Donation Distributed');
+      expect(rendered.message).toContain('20 KG');
+      expect(rendered.emailHtml).toContain('Community Kitchen &lt;script&gt;');
+      expect(rendered.emailHtml).not.toContain('<script>');
+    });
   });
 });

@@ -17,6 +17,7 @@ export function sanitizeContext(payload: Record<string, any>): NotificationConte
     'category',
     'quantity',
     'quantityUnit',
+    'unit',
     'contactName',
     'status',
     'rejectionReason',
@@ -29,6 +30,9 @@ export function sanitizeContext(payload: Record<string, any>): NotificationConte
     'firstName',
     'lastName',
     'reason',
+    'recipientName',
+    'distributionId',
+    'inventoryId',
   ];
 
   const sanitized: NotificationContext = {};
@@ -45,10 +49,11 @@ export function sanitizeContext(payload: Record<string, any>): NotificationConte
 export function renderTemplate(eventType: string, context: NotificationContext): RenderedTemplate {
   const category = escapeHtml(context.category || 'Food');
   const quantity = escapeHtml(context.quantity || '');
-  const quantityUnit = escapeHtml(context.quantityUnit || '');
+  const quantityUnit = escapeHtml(context.unit || context.quantityUnit || '');
   const reason = escapeHtml(context.reason || context.rejectionReason || context.failureReason || '');
   const notes = escapeHtml(context.completionNotes || '');
   const donationId = escapeHtml(context.donationId || '');
+  const recipientName = escapeHtml(context.recipientName || 'community partner');
 
   switch (eventType) {
     case 'DONATION_SUBMITTED':
@@ -121,6 +126,14 @@ export function renderTemplate(eventType: string, context: NotificationContext):
         message: `There was an issue with the food pickup (${category}).${reason ? ' Reason: ' + reason : ''}`,
         emailSubject: 'Food Share — Pickup Exception Report',
         emailHtml: `<p>Hello,</p><p>A pickup attempt for food donation <strong>${category}</strong> was reported as unsuccessful.</p>${reason ? `<p><strong>Reported Reason:</strong> ${reason}</p>` : ''}`,
+      };
+
+    case 'INVENTORY_DISTRIBUTED':
+      return {
+        title: 'Food Donation Distributed',
+        message: `Your donated food (${quantity} ${quantityUnit}) was successfully distributed to ${recipientName}. Thank you!`,
+        emailSubject: 'Food Share — Food Donation Distributed',
+        emailHtml: `<p>Hello,</p><p>Great news! Your donated food of <strong>${quantity} ${quantityUnit}</strong> was successfully distributed to <strong>${recipientName}</strong>.</p><p>Thank you for helping nourish our community!</p>`,
       };
 
     default:

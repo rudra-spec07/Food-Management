@@ -112,74 +112,65 @@ export class OutboxNotificationWorker {
 
     for (const event of events) {
       try {
-        await this.prisma.$transaction(async (tx) => {
-          const rawPayload = typeof event.payload === 'string' ? JSON.parse(event.payload) : event.payload || {};
-          const recipients = await this.recipientResolver.resolveRecipients(event.eventType, rawPayload, tx);
+        await this.prisma.$transaction(
+          async (tx) => {
+            const rawPayload = typeof event.payload === 'string' ? JSON.parse(event.payload) : event.payload || {};
+            const recipients = await this.recipientResolver.resolveRecipients(event.eventType, rawPayload, tx);
 
-          for (const recipientId of recipients) {
-            // Check preferences
-            const inAppPref = await tx.notificationPreference.findUnique({
-              where: {
-                userId_eventType_channel: {
-                  userId: recipientId,
+              // Batch fetch preferences for all recipients in a single query
+              const preferences = await tx.notificationPreference.findMany({
+                where: {
+                  userId: { in: recipients },
                   eventType: event.eventType,
-                  channel: NotificationChannel.IN_APP,
-                },
-              },
-            });
-
-            const emailPref = await tx.notificationPreference.findUnique({
-              where: {
-                userId_eventType_channel: {
-                  userId: recipientId,
-                  eventType: event.eventType,
-                  channel: NotificationChannel.EMAIL,
-                },
-              },
-            });
-
-            const inAppEnabled = inAppPref ? inAppPref.enabled : true;
-            const emailEnabled = emailPref ? emailPref.enabled : true;
-
-            if (!inAppEnabled && !emailEnabled) {
-              continue;
-            }
-
-            const context = sanitizeContext(rawPayload);
-            const rendered = renderTemplate(event.eventType, context);
-
-            let notificationId: string | null = null;
-
-            // Create Notification parent record to anchor deliveries
-            const notification = await tx.notification.create({
-              data: {
-                eventId: event.id,
-                recipientId,
-                eventType: event.eventType,
-                title: rendered.title,
-                message: rendered.message,
-                data: context as any,
-              },
-            });
-            notificationId = notification.id;
-
-            if (emailEnabled && notificationId) {
-              await tx.notificationDelivery.create({
-                data: {
-                  notificationId,
-                  channel: NotificationChannel.EMAIL,
-                  status: 'PENDING',
                 },
               });
-            }
-          }
 
-          // Mark OutboxEvent.publishedAt = NOW() ONLY upon successful consumption
-          await tx.outboxEvent.update({
-            where: { id: event.id },
-            data: { publishedAt: new Date() },
-          });
-        });
+              const prefMap = new Map<string, { inApp: boolean; email: boolean }>();
+              for (const p of preferences) {
+                const current = prefMap.get(p.userId) || { inApp: true, email: true };
+                if (p.channel === NotificationChannel.IN_APP) current.inApp = p.enabled;
+                if (p.channel === NotificationChannel.EMAIL) current.email = p.enabled;
+                prefMap.set(p.userId, current);
+              }
+
+              const context = sanitizeContext(rawPayload);
+              const rendered = renderTemplate(event.eventType, context);
+
+              for (const recipientId of recipients) {
+                const pref = prefMap.get(recipientId) || { inApp: true, email: true };
+                if (!pref.inApp && !pref.email) {
+                  continue;
+                }
+
+                const notification = await tx.notification.create({
+                  data: {
+                    eventId: event.id,
+                    recipientId,
+                    eventType: event.eventType,
+                    title: rendered.title,
+                    message: rendered.message,
+                    data: context as any,
+                  },
+                });
+
+                if (pref.email && notification.id) {
+                  await tx.notificationDelivery.create({
+                    data: {
+                      notificationId: notification.id,
+                      channel: NotificationChannel.EMAIL,
+                      status: 'PENDING',
+                    },
+                  });
+                }
+              }
+
+              await tx.outboxEvent.update({
+                where: { id: event.id },
+                data: { publishedAt: new Date() },
+              });
+            },
+            { maxWait: 15000, timeout: 30000 }
+          );
 
         processedCount++;
       } catch (eventErr: any) {
@@ -210,6 +201,7 @@ export class OutboxNotificationWorker {
             { nextAttemptAt: { lte: now } },
           ],
         },
+        orderBy: { createdAt: 'desc' },
         take: this.deliveryBatchSize,
         include: {
           notification: {

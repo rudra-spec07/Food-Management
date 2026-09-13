@@ -26,6 +26,10 @@ export interface NotificationContext {
   reviewerId?: string;
   firstName?: string;
   lastName?: string;
+  recipientName?: string;
+  unit?: string;
+  distributionId?: string;
+  inventoryId?: string;
   [key: string]: any;
 }
 
