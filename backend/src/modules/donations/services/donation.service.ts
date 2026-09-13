@@ -65,6 +65,22 @@ export class DonationService {
         tx
       );
 
+      await tx.outboxEvent.create({
+        data: {
+          aggregateType: 'Donation',
+          aggregateId: donation.id,
+          eventType: 'DONATION_SUBMITTED',
+          payload: {
+            donationId: donation.id,
+            donorId: donorId,
+            category: donation.category,
+            quantity: donation.quantity.toString(),
+            quantityUnit: donation.quantityUnit,
+            createdAt: donation.createdAt.toISOString(),
+          },
+        },
+      });
+
       return donation;
     });
   }

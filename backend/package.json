@@ -12,6 +12,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "seed:admin": "ts-node prisma/seed.ts",
+    "worker": "node dist/modules/notifications/worker/outbox-notification.worker.js",
+    "worker:dev": "ts-node src/modules/notifications/worker/outbox-notification.worker.ts",
     "test": "jest --runInBand --detectOpenHandles --forceExit"
   },
   "prisma": {

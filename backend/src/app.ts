@@ -14,6 +14,8 @@ import pickupRoutes from './modules/pickup/routes/pickup.routes';
 import inventoryRoutes from './modules/inventory/routes/inventory.routes';
 import distributionRoutes from './modules/distribution/routes/distribution.routes';
 import reservationRoutes from './modules/reservation/routes/reservation.routes';
+import notificationRoutes from './modules/notifications/routes/notification.routes';
+import preferenceRoutes from './modules/notifications/routes/preference.routes';
 
 const app = express();
 
@@ -37,6 +39,8 @@ app.use('/api/v1', pickupRoutes);
 app.use('/api/v1', inventoryRoutes);
 app.use('/api/v1', distributionRoutes);
 app.use('/api/v1', reservationRoutes);
+app.use('/api/v1', notificationRoutes);
+app.use('/api/v1', preferenceRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/donations', donationRoutes);
