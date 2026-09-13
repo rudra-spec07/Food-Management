@@ -190,7 +190,13 @@ export class AssignmentRepository {
     options: { page: number; limit: number }
   ): Promise<[any[], number]> {
     const skip = (options.page - 1) * options.limit;
-    const where: Prisma.AssignmentWhereInput = { workerId };
+    const where: Prisma.AssignmentWhereInput = {
+      workerId,
+      OR: [
+        { pickup: null },
+        { pickup: { status: { not: PickupStatus.COMPLETED } } },
+      ],
+    };
 
     const [items, total] = await Promise.all([
       this.prisma.assignment.findMany({

@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../../src/app';
 import { prisma } from '../../src/config/database';
-import { UserRole, UserStatus, DonationStatus, AssignmentStatus, AuditEventType } from '@prisma/client';
+import { UserRole, UserStatus, DonationStatus, AssignmentStatus, AuditEventType, PickupStatus } from '@prisma/client';
 import { PasswordService } from '../../src/modules/auth-user/services/password.service';
 
 jest.setTimeout(30000);
@@ -561,6 +561,157 @@ describe('Module 04 — Real Database Integration, Security & Concurrency Tests'
       res.body.data.items.forEach((item: any) => {
         expect(item.status).toBe(AssignmentStatus.ACCEPTED);
       });
+    });
+  });
+
+  describe('8. Worker My Assigned Tasks Pickup Completion Filtering Tests', () => {
+    it('should exclude assignments with COMPLETED pickups while preserving NOT_STARTED and IN_PROGRESS tasks', async () => {
+      const now = new Date();
+      const futureExpiry = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+      const d1 = await prisma.donation.create({
+        data: {
+          donorId,
+          category: 'COOKED_MEAL',
+          description: 'Completed Pickup Donation',
+          quantity: 10,
+          quantityUnit: 'PORTIONS',
+          preparedAt: now,
+          expiresAt: futureExpiry,
+          pickupAddress: 'Filter Test St 1',
+          contactName: 'Donor Test',
+          contactPhone: '1234567890',
+          status: DonationStatus.COMPLETED,
+        },
+      });
+
+      const d2 = await prisma.donation.create({
+        data: {
+          donorId,
+          category: 'FRUITS',
+          description: 'In Progress Pickup Donation',
+          quantity: 5,
+          quantityUnit: 'KG',
+          preparedAt: now,
+          expiresAt: futureExpiry,
+          pickupAddress: 'Filter Test St 2',
+          contactName: 'Donor Test',
+          contactPhone: '1234567890',
+          status: DonationStatus.PICKED_UP,
+        },
+      });
+
+      const d3 = await prisma.donation.create({
+        data: {
+          donorId,
+          category: 'PACKAGED_FOOD',
+          description: 'Not Started Pickup Donation',
+          quantity: 8,
+          quantityUnit: 'BOXES',
+          preparedAt: now,
+          expiresAt: futureExpiry,
+          pickupAddress: 'Filter Test St 3',
+          contactName: 'Donor Test',
+          contactPhone: '1234567890',
+          status: DonationStatus.ACCEPTED,
+        },
+      });
+
+      const assign1 = await prisma.assignment.create({
+        data: {
+          donationId: d1.id,
+          workerId: worker1Id,
+          assignedBy: adminId,
+          status: AssignmentStatus.ACCEPTED,
+          assignedAt: now,
+          respondedAt: now,
+        },
+      });
+
+      await prisma.pickup.create({
+        data: {
+          donationId: d1.id,
+          assignmentId: assign1.id,
+          workerId: worker1Id,
+          status: PickupStatus.COMPLETED,
+          completedAt: now,
+        },
+      });
+
+      const assign2 = await prisma.assignment.create({
+        data: {
+          donationId: d2.id,
+          workerId: worker1Id,
+          assignedBy: adminId,
+          status: AssignmentStatus.ACCEPTED,
+          assignedAt: now,
+          respondedAt: now,
+        },
+      });
+
+      await prisma.pickup.create({
+        data: {
+          donationId: d2.id,
+          assignmentId: assign2.id,
+          workerId: worker1Id,
+          status: PickupStatus.IN_PROGRESS,
+          startedAt: now,
+        },
+      });
+
+      const assign3 = await prisma.assignment.create({
+        data: {
+          donationId: d3.id,
+          workerId: worker1Id,
+          assignedBy: adminId,
+          status: AssignmentStatus.ACCEPTED,
+          assignedAt: now,
+          respondedAt: now,
+        },
+      });
+
+      await prisma.pickup.create({
+        data: {
+          donationId: d3.id,
+          assignmentId: assign3.id,
+          workerId: worker1Id,
+          status: PickupStatus.NOT_STARTED,
+        },
+      });
+
+      try {
+        const resWorker1 = await request(app)
+          .get('/api/v1/worker/assignments')
+          .set('Authorization', `Bearer ${worker1Token}`);
+
+        expect(resWorker1.status).toBe(200);
+        const worker1ItemIds = resWorker1.body.data.items.map((i: any) => i.id);
+
+        // 1. NOT_STARTED pickup assignment MUST appear
+        expect(worker1ItemIds).toContain(assign3.id);
+
+        // 2. IN_PROGRESS pickup assignment MUST appear
+        expect(worker1ItemIds).toContain(assign2.id);
+
+        // 3. COMPLETED pickup assignment MUST NOT appear
+        expect(worker1ItemIds).not.toContain(assign1.id);
+
+        // 4. Worker 2 MUST NOT receive any of Worker 1's test assignments (isolation)
+        const resWorker2 = await request(app)
+          .get('/api/v1/worker/assignments')
+          .set('Authorization', `Bearer ${worker2Token}`);
+
+        expect(resWorker2.status).toBe(200);
+        const worker2ItemIds = resWorker2.body.data.items.map((i: any) => i.id);
+        expect(worker2ItemIds).not.toContain(assign1.id);
+        expect(worker2ItemIds).not.toContain(assign2.id);
+        expect(worker2ItemIds).not.toContain(assign3.id);
+      } finally {
+        // Cleanup all created test records
+        await prisma.pickup.deleteMany({ where: { assignmentId: { in: [assign1.id, assign2.id, assign3.id] } } });
+        await prisma.assignment.deleteMany({ where: { id: { in: [assign1.id, assign2.id, assign3.id] } } });
+        await prisma.donation.deleteMany({ where: { id: { in: [d1.id, d2.id, d3.id] } } });
+      }
     });
   });
 });
