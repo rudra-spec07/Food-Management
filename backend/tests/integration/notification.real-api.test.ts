@@ -99,6 +99,12 @@ describe('Module 06 — Notifications & Communication Integration & Security Tes
     const adminSession = await sessionService.createSession(admin.id, admin.role);
     adminToken = adminSession.token;
 
+    // Clean up any pre-existing un-published outbox events from earlier test runs
+    await prisma.outboxEvent.updateMany({
+      where: { publishedAt: null },
+      data: { publishedAt: new Date() },
+    });
+
     expect(donor2Id).toBeDefined();
     expect(workerToken).toBeDefined();
     expect(workerId).toBeDefined();

@@ -2,7 +2,8 @@ import { DonationQuantityUnit, UserRole } from '@prisma/client';
 
 export interface CreateDistributionInput {
   inventoryId: string;
-  recipientName: string;
+  beneficiaryId?: string;
+  recipientName?: string;
   quantity: number | string;
   unit?: DonationQuantityUnit;
   reservationId?: string;
@@ -17,7 +18,8 @@ export interface DistributionFilterOptions {
 
 export interface DistributionTransactionParams {
   inventoryId: string;
-  recipientName: string;
+  beneficiaryId?: string;
+  recipientName?: string;
   quantity: number;
   unit?: DonationQuantityUnit;
   reservationId?: string;

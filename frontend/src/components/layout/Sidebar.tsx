@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FoodShareLogo } from '../common/FoodShareLogo';
-import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Package, Truck, Layers, Bookmark, Bell } from 'lucide-react';
+import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Package, Truck, Layers, Bookmark, Bell, Users } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { user } = useAuth();
@@ -25,6 +25,7 @@ export const Sidebar: React.FC = () => {
           { label: 'Inventory', path: '/inventory', icon: Layers },
           { label: 'Reservations', path: '/reservations', icon: Bookmark },
           { label: 'Distributions', path: '/distributions', icon: Truck },
+          { label: 'Beneficiaries', path: '/beneficiaries', icon: Users },
         ]
       : []),
     ...(user.role === 'WORKER'
@@ -34,6 +35,7 @@ export const Sidebar: React.FC = () => {
           { label: 'Inventory', path: '/inventory', icon: Layers },
           { label: 'Reservations', path: '/reservations', icon: Bookmark },
           { label: 'Distributions', path: '/distributions', icon: Truck },
+          { label: 'Beneficiaries', path: '/beneficiaries', icon: Users },
         ]
       : []),
   ];

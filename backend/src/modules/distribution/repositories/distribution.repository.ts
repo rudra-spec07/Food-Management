@@ -7,6 +7,7 @@ import {
   DistributionStatus,
   ReservationStatus,
   UserRole,
+  BeneficiaryStatus,
 } from '@prisma/client';
 import {
   NotFoundError,
@@ -33,6 +34,11 @@ export class DistributionRepository {
       where.OR = [
         { recipientName: { contains: s, mode: 'insensitive' } },
         { notes: { contains: s, mode: 'insensitive' } },
+        {
+          beneficiary: {
+            name: { contains: s, mode: 'insensitive' },
+          },
+        },
         {
           inventory: {
             description: { contains: s, mode: 'insensitive' },
@@ -64,6 +70,16 @@ export class DistributionRepository {
               lastName: true,
               email: true,
               role: true,
+            },
+          },
+          beneficiary: {
+            select: {
+              id: true,
+              name: true,
+              contactPerson: true,
+              phone: true,
+              email: true,
+              status: true,
             },
           },
         },
@@ -105,6 +121,16 @@ export class DistributionRepository {
             lastName: true,
             email: true,
             role: true,
+          },
+        },
+        beneficiary: {
+          select: {
+            id: true,
+            name: true,
+            contactPerson: true,
+            phone: true,
+            email: true,
+            status: true,
           },
         },
       },
@@ -362,12 +388,39 @@ export class DistributionRepository {
         },
       });
 
+      // 8.5 Validate Beneficiary & Snapshot Name
+      let finalRecipientName = (params.recipientName || '').trim();
+
+      if (params.beneficiaryId) {
+        const beneficiary = await tx.beneficiary.findUnique({
+          where: { id: params.beneficiaryId },
+        });
+
+        if (!beneficiary) {
+          throw new NotFoundError('Beneficiary not found', 'BENEFICIARY_NOT_FOUND');
+        }
+
+        if (beneficiary.status !== BeneficiaryStatus.ACTIVE) {
+          throw new ConflictError(
+            'Beneficiary is inactive and not eligible for distribution',
+            'BENEFICIARY_INACTIVE'
+          );
+        }
+
+        finalRecipientName = beneficiary.name;
+      }
+
+      if (!finalRecipientName) {
+        throw new BadRequestError('Recipient name is required', 'RECIPIENT_NAME_REQUIRED');
+      }
+
       // 9. Create DistributionRecord
       const distributionRecord = await tx.distributionRecord.create({
         data: {
           inventoryId: params.inventoryId,
           distributedBy: params.distributedBy,
-          recipientName: params.recipientName.trim(),
+          beneficiaryId: params.beneficiaryId || null,
+          recipientName: finalRecipientName,
           quantity: reqQuantity,
           unit: effectiveUnit,
           status: DistributionStatus.COMPLETED,
@@ -377,8 +430,8 @@ export class DistributionRepository {
 
       // 10. Create immutable InventoryMovement (OUTFLOW)
       const movementNotes = params.notes
-        ? `Distributed to ${params.recipientName.trim()}: ${params.notes.trim()}`
-        : `Distributed to ${params.recipientName.trim()}`;
+        ? `Distributed to ${finalRecipientName}: ${params.notes.trim()}`
+        : `Distributed to ${finalRecipientName}`;
 
       await tx.inventoryMovement.create({
         data: {
@@ -405,7 +458,8 @@ export class DistributionRepository {
           entityId: distributionRecord.id,
           metadata: {
             inventoryId: params.inventoryId,
-            recipientName: params.recipientName.trim(),
+            beneficiaryId: params.beneficiaryId || null,
+            recipientName: finalRecipientName,
             quantity: reqQuantity.toString(),
             unit: effectiveUnit,
             previousAvailableQuantity: currentAvailable.toString(),
@@ -424,7 +478,8 @@ export class DistributionRepository {
           payload: {
             distributionId: distributionRecord.id,
             inventoryId: params.inventoryId,
-            recipientName: params.recipientName.trim(),
+            beneficiaryId: params.beneficiaryId || null,
+            recipientName: finalRecipientName,
             quantity: reqQuantity.toString(),
             unit: effectiveUnit,
             distributedBy: params.distributedBy,

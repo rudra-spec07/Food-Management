@@ -106,6 +106,11 @@ export const DistributionDetailPage: React.FC = () => {
           <div>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>Recipient Name</span>
             <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>{record.recipientName}</strong>
+            {record.beneficiary && (
+              <div style={{ marginTop: '4px', fontSize: '0.8rem', color: '#2563eb', fontWeight: 500 }}>
+                Linked Beneficiary: {record.beneficiary.name} ({record.beneficiary.status})
+              </div>
+            )}
           </div>
 
           <div>

@@ -5,6 +5,8 @@ import { inventoryService } from '../../modules/inventory/services/inventory.ser
 import { InventoryItem } from '../../modules/inventory/types/inventory.types';
 import { distributionService } from '../../services/distribution.service';
 import { reservationService, InventoryReservation } from '../../services/reservation.service';
+import { beneficiaryService } from '../../services/beneficiary.service';
+import { Beneficiary } from '../../types/beneficiary.types';
 
 export const CreateDistributionPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ export const CreateDistributionPage: React.FC = () => {
 
   const [availableItems, setAvailableItems] = useState<InventoryItem[]>([]);
   const [activeReservations, setActiveReservations] = useState<InventoryReservation[]>([]);
+  const [activeBeneficiaries, setActiveBeneficiaries] = useState<Beneficiary[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
   const [selectedInventoryId, setSelectedInventoryId] = useState<string>('');
@@ -25,6 +28,7 @@ export const CreateDistributionPage: React.FC = () => {
   const [selectedReservationId, setSelectedReservationId] = useState<string>(initialReservationId || '');
   const [selectedReservation, setSelectedReservation] = useState<InventoryReservation | null>(null);
 
+  const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState<string>('');
   const [recipientName, setRecipientName] = useState('');
   const [quantity, setQuantity] = useState<string>('');
   const [notes, setNotes] = useState('');
@@ -35,9 +39,10 @@ export const CreateDistributionPage: React.FC = () => {
   const loadInitialData = async () => {
     try {
       setLoadingData(true);
-      const [invRes, resRes] = await Promise.all([
+      const [invRes, resRes, benRes] = await Promise.all([
         inventoryService.getItems({ status: 'AVAILABLE' as any, limit: 100 }),
         reservationService.getReservations({ status: 'ACTIVE', limit: 100 }),
+        beneficiaryService.getBeneficiaries({ status: 'ACTIVE', limit: 100 }).catch(() => ({ items: [] })),
       ]);
 
       if (invRes && invRes.items) {
@@ -53,6 +58,9 @@ export const CreateDistributionPage: React.FC = () => {
             setQuantity(String(match.quantity));
           }
         }
+      }
+      if (benRes && benRes.items) {
+        setActiveBeneficiaries(benRes.items);
       }
     } catch (err: any) {
       console.error('Failed to load distribution prerequisites:', err);
@@ -96,12 +104,23 @@ export const CreateDistributionPage: React.FC = () => {
     }
   };
 
+  const handleBeneficiarySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = e.target.value;
+    setSelectedBeneficiaryId(id);
+    if (id) {
+      const ben = activeBeneficiaries.find((b) => b.id === id);
+      if (ben) {
+        setRecipientName(ben.name);
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
-    if (!recipientName.trim()) {
-      setErrorMessage('Please enter the recipient or beneficiary organization name.');
+    if (!selectedBeneficiaryId && !recipientName.trim()) {
+      setErrorMessage('Please select a registered beneficiary or enter a recipient name.');
       return;
     }
 
@@ -133,7 +152,8 @@ export const CreateDistributionPage: React.FC = () => {
     try {
       setSubmitting(true);
       const payload: any = {
-        recipientName: recipientName.trim(),
+        recipientName: recipientName.trim() || undefined,
+        beneficiaryId: selectedBeneficiaryId || undefined,
         notes: notes.trim() || undefined,
       };
 
@@ -151,7 +171,7 @@ export const CreateDistributionPage: React.FC = () => {
       const newRecord = await distributionService.createDistribution(payload);
       navigate(`/distributions/${newRecord.id}`);
     } catch (err: any) {
-      const msg = err.message || 'Failed to create distribution';
+      const msg = err?.response?.data?.message || err.message || 'Failed to create distribution';
       setErrorMessage(msg);
 
       if (
@@ -326,6 +346,27 @@ export const CreateDistributionPage: React.FC = () => {
         )}
 
         <div style={{ marginBottom: '20px' }}>
+          {activeBeneficiaries.length > 0 && (
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>
+                Select Registered Beneficiary Organization
+              </label>
+              <select
+                className="input-field"
+                value={selectedBeneficiaryId}
+                onChange={handleBeneficiarySelect}
+                style={{ backgroundColor: '#ffffff' }}
+              >
+                <option value="">-- Choose registered beneficiary (Optional) --</option>
+                {activeBeneficiaries.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name} — {b.address}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>
             Recipient / Beneficiary Name <span style={{ color: '#dc2626' }}>*</span>
           </label>
@@ -334,7 +375,13 @@ export const CreateDistributionPage: React.FC = () => {
             className="input-field"
             placeholder="e.g. Hope Community Shelter, City Food Bank"
             value={recipientName}
-            onChange={(e) => setRecipientName(e.target.value)}
+            onChange={(e) => {
+              setRecipientName(e.target.value);
+              const match = activeBeneficiaries.find((b) => b.id === selectedBeneficiaryId);
+              if (match && match.name !== e.target.value) {
+                setSelectedBeneficiaryId('');
+              }
+            }}
             required
             maxLength={255}
           />

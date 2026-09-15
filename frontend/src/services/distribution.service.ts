@@ -4,6 +4,7 @@ export interface DistributionRecord {
   id: string;
   inventoryId: string;
   distributedBy: string;
+  beneficiaryId?: string | null;
   recipientName: string;
   quantity: number | string;
   unit: string;
@@ -26,11 +27,20 @@ export interface DistributionRecord {
     email: string;
     role: string;
   };
+  beneficiary?: {
+    id: string;
+    name: string;
+    contactPerson?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    status: string;
+  } | null;
 }
 
 export interface CreateDistributionPayload {
   inventoryId: string;
-  recipientName: string;
+  beneficiaryId?: string;
+  recipientName?: string;
   quantity: number;
   unit?: string;
   notes?: string;

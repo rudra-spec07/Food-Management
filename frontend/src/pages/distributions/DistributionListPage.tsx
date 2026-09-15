@@ -110,7 +110,25 @@ export const DistributionListPage: React.FC = () => {
             <tbody>
               {records.map((record) => (
                 <tr key={record.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <td style={{ padding: '12px 16px', fontWeight: 600 }}>{record.recipientName}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600 }}>
+                    {record.recipientName}
+                    {record.beneficiaryId && (
+                      <span
+                        style={{
+                          marginLeft: '8px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          fontSize: '0.7rem',
+                          fontWeight: 600,
+                          backgroundColor: '#eff6ff',
+                          color: '#2563eb',
+                          border: '1px solid #bfdbfe',
+                        }}
+                      >
+                        Registered Beneficiary
+                      </span>
+                    )}
+                  </td>
                   <td style={{ padding: '12px 16px' }}>
                     {record.inventory?.foodCategory?.replace('_', ' ') || 'Food Item'}
                     {record.inventory?.description ? ` (${record.inventory.description})` : ''}

@@ -46,6 +46,8 @@ enum AuditEventType {
   INVENTORY_RELEASED
   INVENTORY_DISTRIBUTED
   INVENTORY_ADJUSTED
+  BENEFICIARY_CREATED
+  BENEFICIARY_UPDATED
 }
 
 enum InventoryStatus {
@@ -401,6 +403,30 @@ model InventoryMovement {
   @@map("inventory_movements")
 }
 
+enum BeneficiaryStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Beneficiary {
+  id                  String               @id @default(uuid()) @db.Uuid
+  name                String               @map("name") @db.VarChar(255)
+  contactPerson       String?              @map("contact_person") @db.VarChar(100)
+  email               String?              @map("email") @db.VarChar(255)
+  phone               String?              @map("phone") @db.VarChar(20)
+  address             String               @map("address") @db.Text
+  status              BeneficiaryStatus    @default(ACTIVE) @map("status")
+  notes               String?              @map("notes") @db.Text
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  distributionRecords DistributionRecord[]
+
+  @@index([status])
+  @@index([name])
+  @@map("beneficiaries")
+}
+
 enum DistributionStatus {
   COMPLETED
 }
@@ -409,6 +435,7 @@ model DistributionRecord {
   id            String               @id @default(uuid()) @db.Uuid
   inventoryId   String               @map("inventory_id") @db.Uuid
   distributedBy String               @map("distributed_by") @db.Uuid
+  beneficiaryId String?              @map("beneficiary_id") @db.Uuid
   recipientName String               @map("recipient_name") @db.VarChar(255)
   quantity      Decimal              @map("quantity") @db.Decimal(10, 2)
   unit          DonationQuantityUnit @map("unit")
@@ -420,9 +447,11 @@ model DistributionRecord {
 
   inventory     InventoryItem        @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
   distributor   User                 @relation("UserDistributionRecords", fields: [distributedBy], references: [id], onDelete: Restrict)
+  beneficiary   Beneficiary?         @relation(fields: [beneficiaryId], references: [id], onDelete: SetNull)
 
   @@index([inventoryId])
   @@index([distributedBy])
+  @@index([beneficiaryId])
   @@index([distributedAt(sort: Desc)])
   @@map("distribution_records")
 }

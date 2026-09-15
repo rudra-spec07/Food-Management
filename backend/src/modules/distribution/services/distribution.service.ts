@@ -17,6 +17,7 @@ export class DistributionService {
   ): Promise<any> {
     return this.repository.executeCreateDistributionTransaction({
       inventoryId: input.inventoryId,
+      beneficiaryId: input.beneficiaryId,
       recipientName: input.recipientName,
       quantity: Number(input.quantity),
       unit: input.unit,
