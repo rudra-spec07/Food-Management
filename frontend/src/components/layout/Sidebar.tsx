@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FoodShareLogo } from '../common/FoodShareLogo';
-import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Package, Truck, Layers, Bookmark, Bell, Users, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Package, Truck, Layers, Bookmark, Bell, Users, BarChart3, Shield } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { user } = useAuth();
@@ -22,6 +22,7 @@ export const Sidebar: React.FC = () => {
           { label: 'Donation Review', path: '/admin/donations/review', icon: ClipboardCheck },
           { label: 'Worker Management', path: '/admin/workers', icon: UserPlus },
           { label: 'Assignment Queue', path: '/admin/donations/assignments', icon: ClipboardList },
+          { label: 'Audit Logs', path: '/admin/audit-logs', icon: Shield },
           { label: 'Available Food', path: '/collection/available', icon: Package },
           { label: 'Inventory', path: '/inventory', icon: Layers },
           { label: 'Reservations', path: '/reservations', icon: Bookmark },
@@ -52,7 +53,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Main Navigation Links */}
-      <nav style={{ flex: 1, padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <nav style={{ flex: 1, padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
         <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-light)', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0 12px 8px' }}>
           Main Menu
         </div>

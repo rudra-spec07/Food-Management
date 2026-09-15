@@ -16,6 +16,9 @@ const envSchema = z.object({
   RATE_LIMIT_REGISTER_MAX: z.string().transform(Number).default('5'),
   RATE_LIMIT_CHANGE_PASSWORD_WINDOW_MS: z.string().transform(Number).default('900000'),
   RATE_LIMIT_CHANGE_PASSWORD_MAX: z.string().transform(Number).default('5'),
+  CORS_ORIGIN: z.string().default('*'),
+  RATE_LIMIT_GLOBAL_WINDOW_MS: z.string().transform(Number).default('900000'),
+  RATE_LIMIT_GLOBAL_MAX: z.string().transform(Number).default('300'),
 });
 
 export type Env = z.infer<typeof envSchema>;

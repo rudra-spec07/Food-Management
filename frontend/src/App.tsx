@@ -13,6 +13,7 @@ import { AdminDonationReviewPage } from './modules/admin/pages/AdminDonationRevi
 import { AdminWorkerProvisioningPage } from './modules/admin/pages/AdminWorkerProvisioningPage';
 import { AdminAssignmentQueuePage } from './modules/admin/pages/AdminAssignmentQueuePage';
 import { AdminReportsPage } from './modules/reporting/pages/AdminReportsPage';
+import { AdminAuditLogsPage } from './pages/admin/AdminAuditLogsPage';
 import { WorkerDashboardPage } from './modules/reporting/pages/WorkerDashboardPage';
 import { WorkerAssignmentsPage } from './modules/worker/pages/WorkerAssignmentsPage';
 import { WorkerPickupDetailPage } from './modules/worker/pages/WorkerPickupDetailPage';
@@ -87,6 +88,7 @@ export const App: React.FC = () => {
               <Route path="/admin/donations/review" element={<AdminDonationReviewPage />} />
               <Route path="/admin/workers" element={<AdminWorkerProvisioningPage />} />
               <Route path="/admin/donations/assignments" element={<AdminAssignmentQueuePage />} />
+              <Route path="/admin/audit-logs" element={<AdminAuditLogsPage />} />
             </Route>
           </Route>
 

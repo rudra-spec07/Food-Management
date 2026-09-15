@@ -14,6 +14,7 @@ import {
   Bell,
   Users,
   BarChart3,
+  Shield,
 } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
@@ -34,6 +35,7 @@ export const BottomNav: React.FC = () => {
           { label: 'Review', path: '/admin/donations/review', icon: ClipboardCheck },
           { label: 'Workers', path: '/admin/workers', icon: UserPlus },
           { label: 'Assignments', path: '/admin/donations/assignments', icon: ClipboardList },
+          { label: 'Audit Logs', path: '/admin/audit-logs', icon: Shield },
           { label: 'Available Food', path: '/collection/available', icon: Package },
           { label: 'Inventory', path: '/inventory', icon: Layers },
           { label: 'Reservations', path: '/reservations', icon: Bookmark },

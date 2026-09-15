@@ -47,4 +47,68 @@ describe('Security & RBAC Enforcement Tests', () => {
       expect(res.headers['strict-transport-security']).toBeDefined();
     });
   });
+
+  describe('Module 08 Health, Liveness & Readiness Probes', () => {
+    it('GET /health should return 200 UP status', async () => {
+      const res = await request(app).get('/health');
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('UP');
+      expect(res.body.timestamp).toBeDefined();
+    });
+
+    it('GET /live should return 200 ALIVE status without DB dependency', async () => {
+      const res = await request(app).get('/live');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.status).toBe('ALIVE');
+      expect(res.body.data.timestamp).toBeDefined();
+    });
+
+    it('GET /ready should return 200 READY when database ping succeeds', async () => {
+      const res = await request(app).get('/ready');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.status).toBe('READY');
+      expect(res.body.data.database).toBe('HEALTHY');
+    });
+  });
+
+  describe('Module 08 Inactive User Session & Audit Immutability Tests', () => {
+    it('SessionService.validateSession should throw UnauthorizedError for INACTIVE user status', async () => {
+      const { SessionService } = require('../../src/modules/auth-user/services/session.service');
+      const sessionService = new SessionService();
+
+      // Mock user repository to return an INACTIVE user
+      jest.spyOn((sessionService as any).authSessionRepository, 'findByTokenJti').mockResolvedValueOnce({
+        id: 'session-id-1',
+        userId: 'inactive-user-id',
+        tokenJti: 'jti-inactive',
+        expiresAt: new Date(Date.now() + 100000),
+        revokedAt: null,
+      });
+
+      jest.spyOn((sessionService as any).userRepository, 'findById').mockResolvedValueOnce({
+        id: 'inactive-user-id',
+        role: UserRole.DONOR,
+        status: 'INACTIVE',
+      });
+
+      await expect(sessionService.validateSession('jti-inactive')).rejects.toThrow(
+        expect.objectContaining({
+          statusCode: 401,
+          code: 'AUTH_USER_INACTIVE',
+        })
+      );
+    });
+
+    it('Audit Log Immutability — API should reject mutation/deletion requests on audit logs', async () => {
+      const resDelete = await request(app).delete('/api/v1/audit-logs/some-id');
+      expect(resDelete.status).toBe(404);
+      expect(resDelete.body.error.code).toBe('ROUTE_NOT_FOUND');
+
+      const resPatch = await request(app).patch('/api/v1/audit-logs/some-id');
+      expect(resPatch.status).toBe(404);
+      expect(resPatch.body.error.code).toBe('ROUTE_NOT_FOUND');
+    });
+  });
 });

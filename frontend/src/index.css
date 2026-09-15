@@ -96,7 +96,9 @@ a:hover {
 /* App Shell & Responsive Layout Utilities */
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
   background-color: var(--bg-page);
   width: 100%;
 }
@@ -107,11 +109,10 @@ a:hover {
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  z-index: 40;
+  height: 100dvh;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .app-main-layout {
@@ -119,6 +120,8 @@ a:hover {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100dvh;
+  overflow-y: auto;
 }
 
 .app-header {
@@ -163,8 +166,20 @@ a:hover {
 }
 
 @media (max-width: 1023px) {
+  .app-shell {
+    min-height: 100dvh;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
   .app-sidebar {
     display: none !important;
+  }
+
+  .app-main-layout {
+    height: auto;
+    overflow-y: visible;
   }
 
   .app-bottom-nav {

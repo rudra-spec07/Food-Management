@@ -51,3 +51,20 @@ export const changePasswordRateLimiter = rateLimit({
     });
   },
 });
+
+export const globalRateLimiter = rateLimit({
+  windowMs: env.RATE_LIMIT_GLOBAL_WINDOW_MS,
+  max: env.RATE_LIMIT_GLOBAL_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: (req: any, res: any) => {
+    res.status(429).json({
+      success: false,
+      error: {
+        code: 'TOO_MANY_REQUESTS',
+        message: 'Too many requests, please try again later.',
+        requestId: req.id || 'unknown',
+      },
+    });
+  },
+});
