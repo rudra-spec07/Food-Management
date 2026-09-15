@@ -170,7 +170,17 @@ a:hover {
   .app-bottom-nav {
     display: flex !important;
     align-items: center;
-    justify-content: space-around;
+    justify-content: flex-start;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0 8px;
+  }
+
+  .app-bottom-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .app-main-content {
@@ -1149,5 +1159,142 @@ a:hover {
 
 .assignment-timeline-item:hover {
   border-color: var(--foodshare-green-primary);
+}
+
+/* ============================================================
+   Module 07 Responsive Mobile & Desktop Layout Utilities
+   ============================================================ */
+.reporting-page-container {
+  padding: 24px 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.report-date-filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--bg-card);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.report-date-filter-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.report-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.report-date-input {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-page);
+  color: var(--text-color);
+  font-size: 0.875rem;
+}
+
+.report-date-sep {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.report-date-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.reporting-tabs-bar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 24px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.reporting-tabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.reporting-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.reporting-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 24px;
+}
+
+@media (max-width: 767px) {
+  .reporting-page-container {
+    padding: 16px 12px;
+  }
+
+  .report-date-filter-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .report-date-inputs {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .report-date-input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .report-date-presets {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .reporting-kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .reporting-chart-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .reporting-tabs-bar button {
+    padding: 10px 14px !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .reporting-kpi-grid {
+    grid-template-columns: 1fr;
+  }
 }
 

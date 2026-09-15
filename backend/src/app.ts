@@ -17,6 +17,7 @@ import reservationRoutes from './modules/reservation/routes/reservation.routes';
 import notificationRoutes from './modules/notifications/routes/notification.routes';
 import preferenceRoutes from './modules/notifications/routes/preference.routes';
 import beneficiaryRoutes from './modules/beneficiary/routes/beneficiary.routes';
+import reportingRoutes from './modules/reporting/routes/reporting.routes';
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use('/api/v1', reservationRoutes);
 app.use('/api/v1', notificationRoutes);
 app.use('/api/v1', preferenceRoutes);
 app.use('/api/v1', beneficiaryRoutes);
+app.use('/api/v1', reportingRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/donations', donationRoutes);

@@ -12,6 +12,8 @@ import { DonorDashboardPage } from './modules/donors/pages/DonorDashboardPage';
 import { AdminDonationReviewPage } from './modules/admin/pages/AdminDonationReviewPage';
 import { AdminWorkerProvisioningPage } from './modules/admin/pages/AdminWorkerProvisioningPage';
 import { AdminAssignmentQueuePage } from './modules/admin/pages/AdminAssignmentQueuePage';
+import { AdminReportsPage } from './modules/reporting/pages/AdminReportsPage';
+import { WorkerDashboardPage } from './modules/reporting/pages/WorkerDashboardPage';
 import { WorkerAssignmentsPage } from './modules/worker/pages/WorkerAssignmentsPage';
 import { WorkerPickupDetailPage } from './modules/worker/pages/WorkerPickupDetailPage';
 import { AvailableFoodPage } from './pages/collection/AvailableFoodPage';
@@ -81,6 +83,7 @@ export const App: React.FC = () => {
           {/* Protected Admin Routes */}
           <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
             <Route element={<AppLayout />}>
+              <Route path="/admin/reports" element={<AdminReportsPage />} />
               <Route path="/admin/donations/review" element={<AdminDonationReviewPage />} />
               <Route path="/admin/workers" element={<AdminWorkerProvisioningPage />} />
               <Route path="/admin/donations/assignments" element={<AdminAssignmentQueuePage />} />
@@ -90,6 +93,7 @@ export const App: React.FC = () => {
           {/* Protected Worker Routes */}
           <Route element={<ProtectedRoute allowedRoles={['WORKER']} />}>
             <Route element={<AppLayout />}>
+              <Route path="/worker/dashboard" element={<WorkerDashboardPage />} />
               <Route path="/worker/assignments" element={<WorkerAssignmentsPage />} />
               <Route path="/worker/pickups/:pickupId" element={<WorkerPickupDetailPage />} />
             </Route>

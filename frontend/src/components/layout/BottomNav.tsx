@@ -1,7 +1,20 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Layers, Bell } from 'lucide-react';
+import {
+  LayoutDashboard,
+  HeartHandshake,
+  ClipboardCheck,
+  UserPlus,
+  ClipboardList,
+  Package,
+  Truck,
+  Layers,
+  Bookmark,
+  Bell,
+  Users,
+  BarChart3,
+} from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
   const { user } = useAuth();
@@ -13,19 +26,30 @@ export const BottomNav: React.FC = () => {
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Notifications', path: '/notifications', icon: Bell },
     ...(user.role === 'DONOR'
-      ? [{ label: 'Donations', path: '/donations', icon: HeartHandshake }]
+      ? [{ label: 'My Donations', path: '/donations', icon: HeartHandshake }]
       : []),
     ...(user.role === 'ADMIN'
       ? [
+          { label: 'Reports', path: '/admin/reports', icon: BarChart3 },
           { label: 'Review', path: '/admin/donations/review', icon: ClipboardCheck },
           { label: 'Workers', path: '/admin/workers', icon: UserPlus },
+          { label: 'Assignments', path: '/admin/donations/assignments', icon: ClipboardList },
+          { label: 'Available Food', path: '/collection/available', icon: Package },
           { label: 'Inventory', path: '/inventory', icon: Layers },
+          { label: 'Reservations', path: '/reservations', icon: Bookmark },
+          { label: 'Distributions', path: '/distributions', icon: Truck },
+          { label: 'Beneficiaries', path: '/beneficiaries', icon: Users },
         ]
       : []),
     ...(user.role === 'WORKER'
       ? [
-          { label: 'My Tasks', path: '/worker/assignments', icon: ClipboardList },
+          { label: 'Dashboard', path: '/worker/dashboard', icon: BarChart3 },
+          { label: 'Assignments', path: '/worker/assignments', icon: ClipboardList },
+          { label: 'Available Food', path: '/collection/available', icon: Package },
           { label: 'Inventory', path: '/inventory', icon: Layers },
+          { label: 'Reservations', path: '/reservations', icon: Bookmark },
+          { label: 'Distributions', path: '/distributions', icon: Truck },
+          { label: 'Beneficiaries', path: '/beneficiaries', icon: Users },
         ]
       : []),
   ];
@@ -41,22 +65,27 @@ export const BottomNav: React.FC = () => {
             key={item.path}
             to={item.path}
             style={{
-              display: 'flex',
+              display: 'inline-flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '3px',
-              padding: '6px 8px',
+              padding: '6px 12px',
+              minWidth: '68px',
+              flexShrink: 0,
               color: isActive ? 'var(--foodshare-green-dark)' : 'var(--text-muted)',
+              backgroundColor: isActive ? 'var(--foodshare-green-soft)' : 'transparent',
+              borderRadius: 'var(--radius-sm)',
               fontWeight: isActive ? 700 : 500,
-              fontSize: '0.75rem',
+              fontSize: '0.725rem',
               textDecoration: 'none',
               transition: 'var(--transition)',
-              flex: 1,
             }}
           >
-            <Icon size={20} color={isActive ? 'var(--foodshare-green-dark)' : 'currentColor'} />
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
+            <Icon size={19} color={isActive ? 'var(--foodshare-green-primary)' : 'currentColor'} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {item.label}
+            </span>
           </Link>
         );
       })}

@@ -185,6 +185,7 @@ model AuditLog {
 
   user       User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@index([createdAt(sort: Desc)])
   @@map("audit_logs")
 }
 

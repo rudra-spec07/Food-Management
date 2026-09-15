@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FoodShareLogo } from '../common/FoodShareLogo';
-import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Package, Truck, Layers, Bookmark, Bell, Users } from 'lucide-react';
+import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Package, Truck, Layers, Bookmark, Bell, Users, BarChart3 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { user } = useAuth();
@@ -18,6 +18,7 @@ export const Sidebar: React.FC = () => {
       : []),
     ...(user.role === 'ADMIN'
       ? [
+          { label: 'Reports & Analytics', path: '/admin/reports', icon: BarChart3 },
           { label: 'Donation Review', path: '/admin/donations/review', icon: ClipboardCheck },
           { label: 'Worker Management', path: '/admin/workers', icon: UserPlus },
           { label: 'Assignment Queue', path: '/admin/donations/assignments', icon: ClipboardList },
@@ -30,6 +31,7 @@ export const Sidebar: React.FC = () => {
       : []),
     ...(user.role === 'WORKER'
       ? [
+          { label: 'Operational Dashboard', path: '/worker/dashboard', icon: BarChart3 },
           { label: 'My Assignments', path: '/worker/assignments', icon: ClipboardList },
           { label: 'Available Food', path: '/collection/available', icon: Package },
           { label: 'Inventory', path: '/inventory', icon: Layers },
