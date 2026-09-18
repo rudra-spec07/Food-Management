@@ -74,6 +74,7 @@ export interface CreateDonationPayload {
   contactPhone: string;
   photoUrl?: string | null;
   notes?: string | null;
+  imageFile?: File | null;
 }
 
 export interface UpdateDonationPayload {
@@ -90,6 +91,7 @@ export interface UpdateDonationPayload {
   contactPhone?: string;
   photoUrl?: string | null;
   notes?: string | null;
+  imageFile?: File | null;
 }
 
 export interface CancelDonationPayload {

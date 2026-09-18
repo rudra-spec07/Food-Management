@@ -9,6 +9,22 @@ import {
   PaginatedDonationResult,
 } from '../types/donor.types';
 
+function buildDonationRequestData(payload: Record<string, any>): FormData | Record<string, any> {
+  const { imageFile, ...rest } = payload;
+  if (!imageFile) {
+    return rest;
+  }
+  const formData = new FormData();
+  Object.keys(rest).forEach((key) => {
+    const val = rest[key];
+    if (val !== undefined && val !== null) {
+      formData.append(key, String(val));
+    }
+  });
+  formData.append('image', imageFile);
+  return formData;
+}
+
 export const donationService = {
   async getMyDonations(filters?: DonationQueryFilters): Promise<PaginatedDonationResult> {
     const params: Record<string, any> = {
@@ -32,12 +48,14 @@ export const donationService = {
   },
 
   async createDonation(payload: CreateDonationPayload): Promise<Donation> {
-    const response = await apiClient.post<ApiSuccessResponse<Donation>>('/donations', payload);
+    const data = buildDonationRequestData(payload);
+    const response = await apiClient.post<ApiSuccessResponse<Donation>>('/donations', data);
     return response.data.data;
   },
 
   async updateDonation(donationId: string, payload: UpdateDonationPayload): Promise<Donation> {
-    const response = await apiClient.patch<ApiSuccessResponse<Donation>>(`/donations/${donationId}`, payload);
+    const data = buildDonationRequestData(payload);
+    const response = await apiClient.patch<ApiSuccessResponse<Donation>>(`/donations/${donationId}`, data);
     return response.data.data;
   },
 

@@ -34,8 +34,43 @@ export const CreateDonationModal: React.FC<CreateDonationModalProps> = ({
   const [pickupLongitude, setPickupLongitude] = useState<string>('');
   const [contactName, setContactName] = useState(defaultContactName);
   const [contactPhone, setContactPhone] = useState(defaultContactPhone);
-  const [photoUrl, setPhotoUrl] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
+
+  const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError(null);
+    const file = e.target.files?.[0];
+    if (!file) {
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+    if (!ALLOWED_TYPES.includes(file.type.toLowerCase())) {
+      setFileError('Invalid file type. Only JPEG, PNG, and WebP images are allowed.');
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      setFileError('File size exceeds maximum allowed limit of 5 MB.');
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setFileError(null);
+  };
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -164,8 +199,8 @@ export const CreateDonationModal: React.FC<CreateDonationModalProps> = ({
       return;
     }
 
-    if (photoUrl.trim() && /\.(exe|sh|bat|cmd|js|py|php|dll)$/i.test(photoUrl.trim())) {
-      setError('photoUrl cannot point to an executable file.');
+    if (fileError) {
+      setError(fileError);
       return;
     }
 
@@ -183,7 +218,7 @@ export const CreateDonationModal: React.FC<CreateDonationModalProps> = ({
         pickupLongitude: hasLng ? Number(pickupLongitude) : undefined,
         contactName: contactName.trim(),
         contactPhone: contactPhone.trim(),
-        photoUrl: photoUrl.trim() || undefined,
+        imageFile: selectedFile || undefined,
         notes: notes.trim() || undefined,
       };
 
@@ -399,10 +434,43 @@ export const CreateDonationModal: React.FC<CreateDonationModalProps> = ({
             </div>
           </div>
 
-          {/* Photo URL & Notes */}
+          {/* Donation Photo Upload (Device File Picker) */}
           <div className="form-group">
-            <label className="form-label">Photo Image URL (Optional)</label>
-            <input type="url" className="form-input" placeholder="https://images.example.com/food.jpg" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} />
+            <label className="form-label">Donation Photo (Optional)</label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleFileChange}
+              className="form-input"
+              style={{ padding: '8px' }}
+            />
+            {fileError && (
+              <p style={{ color: '#b91c1c', fontSize: '0.8rem', marginTop: '4px', margin: 0 }}>
+                {fileError}
+              </p>
+            )}
+            {previewUrl && selectedFile && (
+              <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <img
+                  src={previewUrl}
+                  alt="Selected Preview"
+                  style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }}
+                />
+                <div>
+                  <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 600 }}>{selectedFile.name}</p>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleRemoveFile}
+                    style={{ background: 'none', border: 'none', color: '#b91c1c', fontSize: '0.8rem', cursor: 'pointer', padding: 0, marginTop: '2px' }}
+                  >
+                    Remove Image
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="form-group">

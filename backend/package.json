@@ -31,13 +31,16 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.10.2",
+    "@types/multer": "^2.2.0",
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.11.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-rate-limit": "^7.2.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.4.0",
     "uuid": "^9.0.1",
     "zod": "^3.22.4"
   },

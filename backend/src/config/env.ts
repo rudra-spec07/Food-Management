@@ -19,6 +19,11 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('*'),
   RATE_LIMIT_GLOBAL_WINDOW_MS: z.string().transform(Number).default('900000'),
   RATE_LIMIT_GLOBAL_MAX: z.string().transform(Number).default('300'),
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
+  CLOUDINARY_FOLDER: z.string().default('foodshare_donations'),
+  MAX_FILE_SIZE_MB: z.string().transform(Number).default('5'),
 });
 
 export type Env = z.infer<typeof envSchema>;
