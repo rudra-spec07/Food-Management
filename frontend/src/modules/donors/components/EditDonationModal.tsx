@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Donation, DonationCategory, DonationQuantityUnit, UpdateDonationPayload } from '../types/donor.types';
-import { X, Edit3, AlertCircle } from 'lucide-react';
+import { X, Edit3, AlertCircle, MapPin, Loader2, Navigation } from 'lucide-react';
+import { locationService } from '../../../services/location.service';
+import { LocationPickerMap } from '../../../components/LocationPickerMap';
 
 interface EditDonationModalProps {
   donation: Donation | null;
@@ -32,6 +34,10 @@ export const EditDonationModal: React.FC<EditDonationModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Smart Location states
+  const [locLoading, setLocLoading] = useState(false);
+  const [locError, setLocError] = useState<string | null>(null);
+
   useEffect(() => {
     if (donation) {
       setCategory(donation.category);
@@ -51,6 +57,79 @@ export const EditDonationModal: React.FC<EditDonationModalProps> = ({
   }, [donation]);
 
   if (!isOpen || !donation) return null;
+
+  const handleManualAddressChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setPickupAddress(e.target.value);
+    // Invalidate stale coordinates if user manually changes the street address string
+    if (pickupLatitude !== '' || pickupLongitude !== '') {
+      setPickupLatitude('');
+      setPickupLongitude('');
+    }
+  };
+
+  const handleGetCurrentLocation = () => {
+    setLocError(null);
+    if (!navigator.geolocation) {
+      setLocError('Browser geolocation is not supported on this device.');
+      return;
+    }
+
+    setLocLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        setPickupLatitude(lat.toString());
+        setPickupLongitude(lng.toString());
+
+        try {
+          const result = await locationService.reverseGeocode(lat, lng);
+          if (result.address) {
+            setPickupAddress(result.address);
+          }
+        } catch (err: any) {
+          const errMsg = err?.message || 'Address lookup unavailable. Coordinates saved; please enter address manually.';
+          setLocError(errMsg);
+        } finally {
+          setLocLoading(false);
+        }
+      },
+      (geoErr) => {
+        setLocLoading(false);
+        switch (geoErr.code) {
+          case geoErr.PERMISSION_DENIED:
+            setLocError('Location permission denied. Please enter address manually.');
+            break;
+          case geoErr.POSITION_UNAVAILABLE:
+            setLocError('Location information is unavailable.');
+            break;
+          case geoErr.TIMEOUT:
+            setLocError('Request to get location timed out.');
+            break;
+          default:
+            setLocError('Could not obtain current location.');
+            break;
+        }
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
+  const handleMarkerDragEnd = async (newLat: number, newLng: number) => {
+    setLocError(null);
+    setPickupLatitude(newLat.toString());
+    setPickupLongitude(newLng.toString());
+    try {
+      const result = await locationService.reverseGeocode(newLat, newLng);
+      if (result.address) {
+        setPickupAddress(result.address);
+      }
+    } catch (err: any) {
+      const errMsg = err?.message || "Your location was updated, but we couldn't automatically find the pickup address. Please enter the address manually.";
+      setLocError(errMsg);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +177,10 @@ export const EditDonationModal: React.FC<EditDonationModalProps> = ({
       setLoading(false);
     }
   };
+
+  const numericLat = pickupLatitude !== '' ? Number(pickupLatitude) : null;
+  const numericLng = pickupLongitude !== '' ? Number(pickupLongitude) : null;
+  const hasCoordinates = numericLat !== null && !isNaN(numericLat) && numericLng !== null && !isNaN(numericLng);
 
   return (
     <div
@@ -198,10 +281,71 @@ export const EditDonationModal: React.FC<EditDonationModalProps> = ({
             </div>
           </div>
 
+          {/* Pickup Address & Smart Location */}
           <div className="form-group">
-            <label className="form-label">Pickup Address</label>
-            <textarea className="form-input" rows={2} value={pickupAddress} onChange={(e) => setPickupAddress(e.target.value)} required />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label className="form-label" style={{ margin: 0 }}>Pickup Address *</label>
+              <button
+                type="button"
+                onClick={handleGetCurrentLocation}
+                disabled={locLoading}
+                className="btn-foodshare btn-foodshare-outline"
+                style={{
+                  padding: '4px 10px',
+                  fontSize: '0.8rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
+                {locLoading ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Getting location...</span>
+                  </>
+                ) : (
+                  <>
+                    <Navigation size={14} />
+                    <span>Use my current location</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <textarea
+              className="form-input"
+              rows={2}
+              value={pickupAddress}
+              onChange={handleManualAddressChange}
+              required
+            />
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', margin: 0 }}>
+              Use your current location or enter the address manually.
+            </p>
+
+            {locError && (
+              <div style={{ fontSize: '0.8rem', color: '#b91c1c', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <AlertCircle size={14} />
+                <span>{locError}</span>
+              </div>
+            )}
           </div>
+
+          {/* Map Preview when coordinates exist */}
+          {hasCoordinates && (
+            <div className="form-group">
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MapPin size={16} color="var(--foodshare-green-dark)" />
+                <span>Selected Location Map Pin</span>
+              </label>
+              <LocationPickerMap
+                latitude={numericLat!}
+                longitude={numericLng!}
+                onMarkerDragEnd={handleMarkerDragEnd}
+              />
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div className="form-group">
