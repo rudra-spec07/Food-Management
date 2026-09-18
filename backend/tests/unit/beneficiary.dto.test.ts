@@ -67,10 +67,10 @@ describe('Beneficiary DTO Unit Tests', () => {
     it('accepts valid partial update', () => {
       const result = updateBeneficiarySchema.parse({
         status: BeneficiaryStatus.INACTIVE,
-        phone: '555-0199',
+        phone: '9876543210',
       });
       expect(result.status).toBe(BeneficiaryStatus.INACTIVE);
-      expect(result.phone).toBe('555-0199');
+      expect(result.phone).toBe('9876543210');
     });
 
     it('rejects unexpected fields on update', () => {

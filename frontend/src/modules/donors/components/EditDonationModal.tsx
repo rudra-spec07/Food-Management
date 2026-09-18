@@ -3,6 +3,7 @@ import { Donation, DonationCategory, DonationQuantityUnit, UpdateDonationPayload
 import { X, Edit3, AlertCircle, MapPin, Loader2, Navigation } from 'lucide-react';
 import { locationService } from '../../../services/location.service';
 import { LocationPickerMap } from '../../../components/LocationPickerMap';
+import { normalizeQuantityInput, sanitizePhoneInput, validateIndianMobile } from '../../../utils/validation';
 
 interface EditDonationModalProps {
   donation: Donation | null;
@@ -19,7 +20,7 @@ export const EditDonationModal: React.FC<EditDonationModalProps> = ({
 }) => {
   const [category, setCategory] = useState<DonationCategory>('COOKED_MEAL');
   const [description, setDescription] = useState('');
-  const [quantity, setQuantity] = useState<number>(0);
+  const [quantity, setQuantity] = useState<string | number>(0);
   const [quantityUnit, setQuantityUnit] = useState<DonationQuantityUnit>('PORTIONS');
   const [preparedAt, setPreparedAt] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
@@ -42,7 +43,7 @@ export const EditDonationModal: React.FC<EditDonationModalProps> = ({
     if (donation) {
       setCategory(donation.category);
       setDescription(donation.description);
-      setQuantity(Number(donation.quantity));
+      setQuantity(donation.quantity !== undefined ? donation.quantity.toString() : '');
       setQuantityUnit(donation.quantityUnit);
       setPreparedAt(new Date(donation.preparedAt).toISOString().slice(0, 16));
       setExpiresAt(new Date(donation.expiresAt).toISOString().slice(0, 16));
@@ -139,8 +140,13 @@ export const EditDonationModal: React.FC<EditDonationModalProps> = ({
       setError('Description is required.');
       return;
     }
-    if (!quantity || quantity <= 0) {
+    const numQty = Number(quantity);
+    if (!quantity || isNaN(numQty) || numQty <= 0) {
       setError('Quantity must be greater than 0.');
+      return;
+    }
+    if (contactPhone && !validateIndianMobile(contactPhone)) {
+      setError('Contact phone number must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.');
       return;
     }
 
@@ -156,7 +162,7 @@ export const EditDonationModal: React.FC<EditDonationModalProps> = ({
       const payload: UpdateDonationPayload = {
         category,
         description: description.trim(),
-        quantity: Number(quantity),
+        quantity: numQty,
         quantityUnit,
         preparedAt: new Date(preparedAt).toISOString(),
         expiresAt: new Date(expiresAt).toISOString(),
@@ -251,7 +257,7 @@ export const EditDonationModal: React.FC<EditDonationModalProps> = ({
             <div className="form-group">
               <label className="form-label">Quantity & Unit</label>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="number" className="form-input" min="1" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} style={{ width: '40%' }} />
+                <input type="number" className="form-input" min="0.01" step="any" value={quantity} onChange={(e) => setQuantity(normalizeQuantityInput(e.target.value))} style={{ width: '40%' }} />
                 <select className="form-input" value={quantityUnit} onChange={(e) => setQuantityUnit(e.target.value as DonationQuantityUnit)} style={{ width: '60%' }}>
                   <option value="PORTIONS">Portions</option>
                   <option value="KG">Kilograms (kg)</option>
@@ -366,7 +372,7 @@ export const EditDonationModal: React.FC<EditDonationModalProps> = ({
 
             <div className="form-group">
               <label className="form-label">Contact Phone</label>
-              <input type="tel" className="form-input" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} required />
+              <input type="tel" className="form-input" value={contactPhone} onChange={(e) => setContactPhone(sanitizePhoneInput(e.target.value))} required placeholder="10-digit mobile number" />
             </div>
           </div>
 

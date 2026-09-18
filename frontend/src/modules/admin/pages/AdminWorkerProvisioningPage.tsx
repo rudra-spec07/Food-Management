@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { sanitizePhoneInput, validateIndianMobile } from '../../../utils/validation';
 import {
   adminWorkerService,
   WorkerUserResponse,
@@ -102,6 +103,7 @@ export const AdminWorkerProvisioningPage: React.FC = () => {
     if (!email.trim()) return 'Email is required.';
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) return 'Please enter a valid email address.';
+    if (phone.trim() && !validateIndianMobile(phone)) return 'Phone number must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.';
     if (!password) return 'Password is required.';
     if (password.length < 8) return 'Password must be at least 8 characters long.';
     if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter.';
@@ -632,7 +634,7 @@ export const AdminWorkerProvisioningPage: React.FC = () => {
                   type="tel"
                   className="input-field"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(sanitizePhoneInput(e.target.value))}
                   placeholder="e.g. 9876543210"
                   disabled={isSubmitting}
                 />

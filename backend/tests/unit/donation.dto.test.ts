@@ -18,7 +18,7 @@ describe('Donation DTO Validation Unit Tests', () => {
       pickupLatitude: 22.7196,
       pickupLongitude: 75.8577,
       contactName: 'Rahul Sharma',
-      contactPhone: '+919999999999',
+      contactPhone: '9999999999',
       photoUrl: 'https://images.example.com/meal.jpg',
       notes: 'Please pick up near main entrance',
     };

@@ -9,6 +9,17 @@ export const passwordValidationSchema = z
   .refine((val) => /[0-9]/.test(val), 'Password must contain at least one digit')
   .refine((val) => /[^A-Za-z0-9]/.test(val), 'Password must contain at least one special character');
 
+export const indianMobileRegex = /^[6-9][0-9]{9}$/;
+
+export const phoneValidationSchema = z
+  .string()
+  .trim()
+  .refine((val) => !val || indianMobileRegex.test(val), {
+    message: 'Phone number must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9',
+  })
+  .optional()
+  .nullable();
+
 export const registerSchema = z.object({
   firstName: z
     .string()
@@ -26,12 +37,7 @@ export const registerSchema = z.object({
     .email('Invalid email address format')
     .max(255, 'Email must not exceed 255 characters')
     .transform((val) => val.toLowerCase()),
-  phone: z
-    .string()
-    .trim()
-    .max(20, 'Phone number must not exceed 20 characters')
-    .optional()
-    .nullable(),
+  phone: phoneValidationSchema,
   password: passwordValidationSchema,
 });
 
@@ -57,12 +63,7 @@ export const updateProfileSchema = z.object({
     .min(1, 'Last name cannot be empty')
     .max(100, 'Last name must not exceed 100 characters')
     .optional(),
-  phone: z
-    .string()
-    .trim()
-    .max(20, 'Phone number must not exceed 20 characters')
-    .nullable()
-    .optional(),
+  phone: phoneValidationSchema,
 });
 
 export const changePasswordSchema = z.object({

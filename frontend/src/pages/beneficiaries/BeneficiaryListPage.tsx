@@ -3,6 +3,7 @@ import { beneficiaryService, PaginatedBeneficiaryHistoryResult } from '../../ser
 import { Beneficiary, BeneficiaryStatus } from '../../types/beneficiary.types';
 import { useAuth } from '../../hooks/useAuth';
 import { Users, Plus, Search, Building, Phone, Mail, MapPin, Clock, CheckCircle, XCircle, X } from 'lucide-react';
+import { sanitizePhoneInput, validateIndianMobile } from '../../utils/validation';
 
 export const BeneficiaryListPage: React.FC = () => {
   const { user } = useAuth();
@@ -63,6 +64,11 @@ export const BeneficiaryListPage: React.FC = () => {
     e.preventDefault();
     if (!createName.trim() || !createAddress.trim()) {
       setCreateError('Name and Address are required.');
+      return;
+    }
+
+    if (createPhone.trim() && !validateIndianMobile(createPhone)) {
+      setCreateError('Phone number must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.');
       return;
     }
 
@@ -427,10 +433,10 @@ export const BeneficiaryListPage: React.FC = () => {
                     Phone Number
                   </label>
                   <input
-                    type="text"
-                    placeholder="e.g. 555-0199"
+                    type="tel"
+                    placeholder="e.g. 9876543210"
                     value={createPhone}
-                    onChange={(e) => setCreatePhone(e.target.value)}
+                    onChange={(e) => setCreatePhone(sanitizePhoneInput(e.target.value))}
                     style={{ width: '100%', padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
                   />
                 </div>

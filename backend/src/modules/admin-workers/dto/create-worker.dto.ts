@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { passwordValidationSchema } from '../../auth-user/dto/auth.dto';
+import { passwordValidationSchema, phoneValidationSchema } from '../../auth-user/dto/auth.dto';
 
 export const createWorkerSchema = z
   .object({
@@ -19,12 +19,7 @@ export const createWorkerSchema = z
       .email('Invalid email address format')
       .max(255, 'Email must not exceed 255 characters')
       .transform((val) => val.toLowerCase()),
-    phone: z
-      .string()
-      .trim()
-      .max(20, 'Phone number must not exceed 20 characters')
-      .optional()
-      .nullable(),
+    phone: phoneValidationSchema,
     password: passwordValidationSchema,
   })
   .strict();

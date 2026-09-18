@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { DonationCategory, DonationQuantityUnit, DonationStatus } from '@prisma/client';
 
 const FORBIDDEN_PHOTO_EXTENSIONS = /\.(exe|sh|bat|cmd|js|py|php|dll|jar|vbs|msi)$/i;
-const PHONE_REGEX = /^[+]?[0-9\s\-()]{5,20}$/;
+const INDIAN_MOBILE_REGEX = /^[6-9][0-9]{9}$/;
 
 export const createDonationSchema = z
   .object({
@@ -52,8 +52,7 @@ export const createDonationSchema = z
     contactPhone: z
       .string({ required_error: 'Contact phone is required' })
       .trim()
-      .regex(PHONE_REGEX, 'Invalid contact phone number format')
-      .max(20, 'Contact phone must not exceed 20 characters'),
+      .regex(INDIAN_MOBILE_REGEX, 'Contact phone number must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9'),
     photoUrl: z
       .string()
       .trim()
@@ -128,7 +127,7 @@ export const updateDonationSchema = z
     pickupLatitude: z.number().min(-90).max(90).optional().nullable(),
     pickupLongitude: z.number().min(-180).max(180).optional().nullable(),
     contactName: z.string().trim().min(1).max(100).optional(),
-    contactPhone: z.string().trim().regex(PHONE_REGEX, 'Invalid contact phone number format').optional(),
+    contactPhone: z.string().trim().regex(INDIAN_MOBILE_REGEX, 'Contact phone number must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9').optional(),
     photoUrl: z
       .string()
       .trim()

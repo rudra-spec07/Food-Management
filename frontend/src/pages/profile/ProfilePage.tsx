@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { User as UserIcon, Mail, Phone, Shield, CheckCircle2, AlertCircle } from 'lucide-react';
+import { sanitizePhoneInput, validateIndianMobile } from '../../utils/validation';
 
 export const ProfilePage: React.FC = () => {
   const { user, updateProfile } = useAuth();
@@ -30,6 +31,11 @@ export const ProfilePage: React.FC = () => {
 
     if (!firstName.trim() || !lastName.trim()) {
       setErrorMessage('First name and Last name cannot be empty');
+      return;
+    }
+
+    if (phone.trim() && !validateIndianMobile(phone)) {
+      setErrorMessage('Phone number must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9');
       return;
     }
 
@@ -111,9 +117,9 @@ export const ProfilePage: React.FC = () => {
                 id="prof-phone"
                 type="tel"
                 className="form-input has-icon-left"
-                placeholder="+1 555-0199"
+                placeholder="10-digit mobile number"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(sanitizePhoneInput(e.target.value))}
                 disabled={isSubmitting}
               />
             </div>

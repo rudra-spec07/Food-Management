@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FoodShareLogo } from '../../components/common/FoodShareLogo';
 import { User, Mail, Phone, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, HeartHandshake } from 'lucide-react';
+import { sanitizePhoneInput, validateIndianMobile } from '../../utils/validation';
 
 export const RegisterPage: React.FC = () => {
   const { register } = useAuth();
@@ -38,6 +39,11 @@ export const RegisterPage: React.FC = () => {
 
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
       setErrorMessage('Please enter a valid email address');
+      return;
+    }
+
+    if (phone.trim() && !validateIndianMobile(phone)) {
+      setErrorMessage('Phone number must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9');
       return;
     }
 
@@ -162,7 +168,7 @@ export const RegisterPage: React.FC = () => {
                   className="form-input has-icon-left"
                   placeholder="Enter phone number"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(sanitizePhoneInput(e.target.value))}
                   disabled={isSubmitting}
                 />
               </div>
