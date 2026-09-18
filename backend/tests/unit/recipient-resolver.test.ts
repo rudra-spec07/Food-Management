@@ -29,11 +29,11 @@ describe('RecipientResolverService Unit Tests', () => {
     };
   });
 
-  it('should resolve DONATION_SUBMITTED to donor AND all active admins', async () => {
+  it('should resolve DONATION_SUBMITTED to all active admins (and NOT donor)', async () => {
     const payload = { donorId: 'donor-100', donationId: 'don-1' };
     const recipients = await service.resolveRecipients('DONATION_SUBMITTED', payload, mockTx);
 
-    expect(recipients).toContain('donor-100');
+    expect(recipients).not.toContain('donor-100');
     expect(recipients).toContain('admin-1');
     expect(recipients).toContain('admin-2');
     expect(mockTx.user.findMany).toHaveBeenCalledWith({
@@ -49,11 +49,12 @@ describe('RecipientResolverService Unit Tests', () => {
     expect(recipients).toEqual(['donor-100']);
   });
 
-  it('should resolve DONATION_ASSIGNED to assigned worker only', async () => {
-    const payload = { workerId: 'worker-50' };
+  it('should resolve DONATION_ASSIGNED to donor AND assigned worker', async () => {
+    const payload = { donorId: 'donor-100', workerId: 'worker-50' };
     const recipients = await service.resolveRecipients('DONATION_ASSIGNED', payload, mockTx);
 
-    expect(recipients).toEqual(['worker-50']);
+    expect(recipients).toContain('donor-100');
+    expect(recipients).toContain('worker-50');
     expect(recipients).not.toContain('worker-unrelated');
   });
 
@@ -64,29 +65,27 @@ describe('RecipientResolverService Unit Tests', () => {
     expect(recipients).toEqual(['admin-1']);
   });
 
-  it('should resolve PICKUP_STARTED, PICKUP_COMPLETED, PICKUP_FAILED to donor, assigned worker, AND active admins', async () => {
+  it('should resolve PICKUP_STARTED to donor and active admins (and NOT assigned worker)', async () => {
     const payload = { donorId: 'donor-100', workerId: 'worker-assigned', pickupId: 'pickup-1' };
     const recipientsStarted = await service.resolveRecipients('PICKUP_STARTED', payload, mockTx);
+
+    expect(recipientsStarted).toContain('donor-100');
+    expect(recipientsStarted).toContain('admin-1');
+    expect(recipientsStarted).not.toContain('worker-assigned');
+    expect(recipientsStarted).not.toContain('worker-unrelated');
+  });
+
+  it('should resolve PICKUP_COMPLETED and PICKUP_FAILED to donor, assigned worker, AND active admins', async () => {
+    const payload = { donorId: 'donor-100', workerId: 'worker-assigned', pickupId: 'pickup-1' };
     const recipientsCompleted = await service.resolveRecipients('PICKUP_COMPLETED', payload, mockTx);
     const recipientsFailed = await service.resolveRecipients('PICKUP_FAILED', payload, mockTx);
 
-    // Donor
-    expect(recipientsStarted).toContain('donor-100');
     expect(recipientsCompleted).toContain('donor-100');
     expect(recipientsFailed).toContain('donor-100');
-
-    // Assigned Worker
-    expect(recipientsStarted).toContain('worker-assigned');
     expect(recipientsCompleted).toContain('worker-assigned');
     expect(recipientsFailed).toContain('worker-assigned');
-
-    // Admins
-    expect(recipientsStarted).toContain('admin-1');
     expect(recipientsCompleted).toContain('admin-1');
     expect(recipientsFailed).toContain('admin-1');
-
-    // Unrelated worker excluded
-    expect(recipientsStarted).not.toContain('worker-unrelated');
   });
 
   it('should resolve INVENTORY_DISTRIBUTED to donor, assigned worker, AND active admins', async () => {

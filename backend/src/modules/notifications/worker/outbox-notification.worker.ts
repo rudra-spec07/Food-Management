@@ -1,4 +1,5 @@
 import { PrismaClient, NotificationChannel } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 import { RecipientResolverService } from '../services/recipient-resolver.service';
 import { sanitizeContext, renderTemplate } from '../templates/notification-template.map';
 import { IEmailProvider } from '../providers/email-provider.interface';
@@ -136,32 +137,47 @@ export class OutboxNotificationWorker {
               const context = sanitizeContext(rawPayload);
               const rendered = renderTemplate(event.eventType, context);
 
+              const notificationsToCreate: any[] = [];
+              const deliveriesToCreate: any[] = [];
+
               for (const recipientId of recipients) {
                 const pref = prefMap.get(recipientId) || { inApp: true, email: true };
                 if (!pref.inApp && !pref.email) {
                   continue;
                 }
 
-                const notification = await tx.notification.create({
-                  data: {
-                    eventId: event.id,
-                    recipientId,
-                    eventType: event.eventType,
-                    title: rendered.title,
-                    message: rendered.message,
-                    data: context as any,
-                  },
+                const notificationId = uuidv4();
+                notificationsToCreate.push({
+                  id: notificationId,
+                  eventId: event.id,
+                  recipientId,
+                  eventType: event.eventType,
+                  title: rendered.title,
+                  message: rendered.message,
+                  data: context as any,
                 });
 
-                if (pref.email && notification.id) {
-                  await tx.notificationDelivery.create({
-                    data: {
-                      notificationId: notification.id,
-                      channel: NotificationChannel.EMAIL,
-                      status: 'PENDING',
-                    },
+                if (pref.email) {
+                  deliveriesToCreate.push({
+                    notificationId,
+                    channel: NotificationChannel.EMAIL,
+                    status: 'PENDING',
                   });
                 }
+              }
+
+              if (notificationsToCreate.length > 0) {
+                await tx.notification.createMany({
+                  data: notificationsToCreate,
+                  skipDuplicates: true,
+                });
+              }
+
+              if (deliveriesToCreate.length > 0) {
+                await tx.notificationDelivery.createMany({
+                  data: deliveriesToCreate,
+                  skipDuplicates: true,
+                });
               }
 
               await tx.outboxEvent.update({

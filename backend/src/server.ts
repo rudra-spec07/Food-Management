@@ -1,13 +1,18 @@
 import app from './app';
 import { env } from './config/env';
 import { prisma } from './config/database';
+import { OutboxNotificationWorker } from './modules/notifications/worker/outbox-notification.worker';
+
+const notificationWorker = new OutboxNotificationWorker({ prisma });
 
 const server = app.listen(env.PORT, () => {
   console.log(`[Server] Food Donation Management Backend running on port ${env.PORT} in ${env.NODE_ENV} mode`);
+  notificationWorker.start();
 });
 
 const gracefulShutdown = async (signal: string) => {
   console.log(`[Server] Received ${signal}. Shutting down gracefully...`);
+  await notificationWorker.stop();
   server.close(async () => {
     console.log('[Server] HTTP server closed.');
     await prisma.$disconnect();

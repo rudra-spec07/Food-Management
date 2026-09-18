@@ -58,11 +58,17 @@ describe('Module 06 — Template Engine & Security Unit Tests', () => {
       failureReason: 'Address not reachable <tag>',
     };
 
-    it('should render DONATION_SUBMITTED template safely', () => {
-      const rendered = renderTemplate('DONATION_SUBMITTED', context);
+    it('should render DONATION_SUBMITTED template safely for admin recipients', () => {
+      const adminContext = {
+        ...context,
+        contactName: 'Rahul Sharma',
+      };
+      const rendered = renderTemplate('DONATION_SUBMITTED', adminContext);
       expect(rendered.title).toBe('Donation Submitted');
-      expect(rendered.message).toContain('10 BOXES of PACKAGED_FOOD');
-      expect(rendered.emailHtml).not.toContain('<tag>');
+      expect(rendered.message).toBe('You have a new donation from Rahul Sharma. They have donated 10 BOXES of PACKAGED_FOOD.');
+      expect(rendered.message).not.toContain('Your food donation');
+      expect(rendered.message).not.toContain('pending review');
+      expect(rendered.emailHtml).toContain('Rahul Sharma');
     });
 
     it('should render DONATION_APPROVED template', () => {

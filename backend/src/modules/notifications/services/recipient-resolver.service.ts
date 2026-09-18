@@ -21,18 +21,7 @@ export class RecipientResolverService {
 
     switch (eventType) {
       case 'DONATION_SUBMITTED': {
-        // 1. Donor
-        if (payload.donorId) {
-          recipients.add(String(payload.donorId));
-        } else if (payload.donationId) {
-          const donation = await tx.donation.findUnique({
-            where: { id: String(payload.donationId) },
-            select: { donorId: true },
-          });
-          if (donation?.donorId) recipients.add(donation.donorId);
-        }
-
-        // 2. All Active Admin users
+        // All Active Admin users ONLY (donor does NOT receive self-notification)
         const adminIds = await this.getActiveAdmins(tx);
         for (const adminId of adminIds) {
           recipients.add(adminId);
@@ -55,6 +44,18 @@ export class RecipientResolverService {
       }
 
       case 'DONATION_ASSIGNED': {
+        // 1. Donor
+        if (payload.donorId) {
+          recipients.add(String(payload.donorId));
+        } else if (payload.donationId) {
+          const donation = await tx.donation.findUnique({
+            where: { id: String(payload.donationId) },
+            select: { donorId: true },
+          });
+          if (donation?.donorId) recipients.add(donation.donorId);
+        }
+
+        // 2. Assigned Worker
         if (payload.workerId) {
           recipients.add(String(payload.workerId));
         } else if (payload.assignmentId) {
@@ -81,7 +82,32 @@ export class RecipientResolverService {
         break;
       }
 
-      case 'PICKUP_STARTED':
+      case 'PICKUP_STARTED': {
+        // 1. Donor
+        if (payload.donorId) {
+          recipients.add(String(payload.donorId));
+        } else if (payload.donationId) {
+          const donation = await tx.donation.findUnique({
+            where: { id: String(payload.donationId) },
+            select: { donorId: true },
+          });
+          if (donation?.donorId) recipients.add(donation.donorId);
+        } else if (payload.pickupId) {
+          const pickup = await tx.pickup.findUnique({
+            where: { id: String(payload.pickupId) },
+            select: { donation: { select: { donorId: true } } },
+          });
+          if (pickup?.donation?.donorId) recipients.add(pickup.donation.donorId);
+        }
+
+        // 2. All Active Admin users (Worker who started pickup is NOT notified)
+        const adminIds = await this.getActiveAdmins(tx);
+        for (const adminId of adminIds) {
+          recipients.add(adminId);
+        }
+        break;
+      }
+
       case 'PICKUP_COMPLETED':
       case 'PICKUP_FAILED': {
         // 1. Donor

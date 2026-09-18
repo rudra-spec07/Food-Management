@@ -76,6 +76,7 @@ export class DonationService {
             category: donation.category,
             quantity: donation.quantity.toString(),
             quantityUnit: donation.quantityUnit,
+            contactName: donation.contactName,
             createdAt: donation.createdAt.toISOString(),
           },
         },

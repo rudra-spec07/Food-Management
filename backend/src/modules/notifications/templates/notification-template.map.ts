@@ -55,13 +55,25 @@ export function renderTemplate(eventType: string, context: NotificationContext):
   const donationId = escapeHtml(context.donationId || '');
   const recipientName = escapeHtml(context.recipientName || 'community partner');
 
+  const donorName = escapeHtml(
+    context.contactName ||
+      context.donorName ||
+      (context.firstName ? `${context.firstName}${context.lastName ? ' ' + context.lastName : ''}` : '') ||
+      'a donor'
+  );
+  const unitStr = quantityUnit
+    ? quantityUnit.toLowerCase() === 'portions'
+      ? 'portions'
+      : quantityUnit
+    : 'portions';
+
   switch (eventType) {
     case 'DONATION_SUBMITTED':
       return {
         title: 'Donation Submitted',
-        message: `Your food donation (${quantity} ${quantityUnit} of ${category}) has been submitted and is pending review.`,
-        emailSubject: 'Food Share — Donation Submitted Successfully',
-        emailHtml: `<p>Hello,</p><p>Your food donation of <strong>${quantity} ${quantityUnit}</strong> of <strong>${category}</strong> has been submitted successfully and is pending administrative review.</p><p>Donation Reference: ${donationId}</p>`,
+        message: `You have a new donation from ${donorName}. They have donated ${quantity} ${unitStr} of ${category}.`,
+        emailSubject: 'Food Share — New Donation Submitted',
+        emailHtml: `<p>Hello Admin,</p><p>You have a new food donation from <strong>${donorName}</strong>. They have donated <strong>${quantity} ${unitStr}</strong> of <strong>${category}</strong>.</p><p>Donation Reference: ${donationId}</p>`,
       };
 
     case 'DONATION_APPROVED':

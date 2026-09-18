@@ -30,7 +30,10 @@ describe('Module 06 — Notifications & Communication Integration & Security Tes
   beforeAll(async () => {
     notificationWorker = new OutboxNotificationWorker({ prisma });
 
-    // Clear stale unconsumed outbox events to ensure clean test batch processing
+    // Clear stale unconsumed outbox events and pending deliveries to ensure clean test batch processing
+    await prisma.notificationDelivery.deleteMany({
+      where: { status: 'PENDING' },
+    });
     await prisma.outboxEvent.deleteMany({
       where: { publishedAt: null },
     });
@@ -163,7 +166,7 @@ describe('Module 06 — Notifications & Communication Integration & Security Tes
           expiresAt,
           pickupAddress: '123 Helping St',
           contactName: 'Donor One',
-          contactPhone: '+919876543210',
+          contactPhone: '9876543210',
         });
 
       expect(res.status).toBe(201);
@@ -193,11 +196,11 @@ describe('Module 06 — Notifications & Communication Integration & Security Tes
       });
       expect(updatedOutbox?.publishedAt).not.toBeNull();
 
-      // Notification must exist for Donor 1
+      // Notification must exist for Admin 1 (DONATION_SUBMITTED notifies active admins)
       const notification = await prisma.notification.findFirst({
         where: {
           eventId: createdOutboxId,
-          recipientId: donorId,
+          recipientId: adminId,
         },
         include: { deliveries: true },
       });
@@ -223,7 +226,7 @@ describe('Module 06 — Notifications & Communication Integration & Security Tes
 
       const delivery = await prisma.notificationDelivery.findFirst({
         where: {
-          notification: { recipientId: donorId },
+          notification: { recipientId: adminId },
           channel: NotificationChannel.EMAIL,
         },
       });
