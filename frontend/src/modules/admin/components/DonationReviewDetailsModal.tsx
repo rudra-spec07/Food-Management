@@ -14,6 +14,7 @@ import {
   Loader2,
   Phone,
   Mail,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { ReviewDetailResponse } from '../types/review.types';
 import { DonationStatusBadge } from '../../donors/components/DonationStatusBadge';
@@ -239,6 +240,46 @@ export const DonationReviewDetailsModal: React.FC<DonationReviewDetailsModalProp
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Donation Photo Section */}
+              <div
+                style={{
+                  padding: '16px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'var(--bg-surface)',
+                }}
+              >
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <ImageIcon size={16} color="var(--foodshare-green-primary)" />
+                  <span>Donation Photo</span>
+                </div>
+
+                {donation.photoUrl ? (
+                  <div style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-main)', textAlign: 'center' }}>
+                    <img
+                      src={donation.photoUrl}
+                      alt="Donation Submission"
+                      style={{ maxWidth: '100%', maxHeight: '260px', objectFit: 'cover', display: 'block', margin: '0 auto' }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerText = 'Photo unavailable';
+                          parent.style.padding = '20px';
+                          parent.style.color = 'var(--text-muted)';
+                          parent.style.fontSize = '0.875rem';
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div style={{ padding: '16px', textAlign: 'center', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                    No photo uploaded
+                  </div>
+                )}
               </div>
 
               {/* Food Details Grid */}

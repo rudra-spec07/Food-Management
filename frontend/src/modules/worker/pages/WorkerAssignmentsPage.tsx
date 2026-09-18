@@ -414,6 +414,33 @@ export const WorkerAssignmentsPage: React.FC = () => {
                   <strong>Rejection Reason:</strong> "{detailAssignment.rejectionReason}"
                 </div>
               )}
+              <div style={{ marginTop: '6px' }}>
+                <strong style={{ display: 'block', marginBottom: '6px' }}>Donor Submitted Photo:</strong>
+                {detailAssignment.donation?.photoUrl ? (
+                  <div style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-main)', textAlign: 'center' }}>
+                    <img
+                      src={detailAssignment.donation.photoUrl}
+                      alt="Donor Submitted Photo"
+                      style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'cover', display: 'block', margin: '0 auto' }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerText = 'Photo unavailable';
+                          parent.style.padding = '12px';
+                          parent.style.color = 'var(--text-muted)';
+                          parent.style.fontSize = '0.85rem';
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div style={{ padding: '12px', textAlign: 'center', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    No photo uploaded
+                  </div>
+                )}
+              </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

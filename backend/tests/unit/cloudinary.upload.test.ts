@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { CloudinaryService } from '../../src/integrations/cloudinary/cloudinary.service';
 import { singleImageUpload } from '../../src/shared/middleware/upload.middleware';
+import { env } from '../../src/config/env';
 import express, { Request, Response } from 'express';
 
 describe('Phase 3 — Cloudinary Image Upload & Middleware Unit Tests', () => {
@@ -30,14 +31,20 @@ describe('Phase 3 — Cloudinary Image Upload & Middleware Unit Tests', () => {
 
   describe('CloudinaryService Unit Tests', () => {
     it('should report unconfigured when Cloudinary environment credentials are missing', () => {
+      const origCloud = env.CLOUDINARY_CLOUD_NAME;
+      (env as any).CLOUDINARY_CLOUD_NAME = '';
       const service = new CloudinaryService();
       expect(service.isConfigured()).toBe(false);
+      (env as any).CLOUDINARY_CLOUD_NAME = origCloud;
     });
 
     it('should throw CLOUDINARY_NOT_CONFIGURED error when upload is attempted without credentials', async () => {
+      const origCloud = env.CLOUDINARY_CLOUD_NAME;
+      (env as any).CLOUDINARY_CLOUD_NAME = '';
       const service = new CloudinaryService();
       const buffer = Buffer.from('dummy image content');
       await expect(service.uploadBuffer(buffer)).rejects.toThrow('Cloudinary image upload service is not configured.');
+      (env as any).CLOUDINARY_CLOUD_NAME = origCloud;
     });
   });
 

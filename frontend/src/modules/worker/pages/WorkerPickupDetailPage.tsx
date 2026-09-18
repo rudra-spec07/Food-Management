@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Clock,
   Layers,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { pickupService, PickupItem } from '../../../services/pickup.service';
 
@@ -367,6 +368,38 @@ export const WorkerPickupDetailPage: React.FC = () => {
                 <p style={{ margin: 0, color: 'var(--text-main)', fontSize: '0.925rem', lineHeight: 1.5 }}>{donation.description}</p>
               </div>
             )}
+
+            {/* Donor Submitted Photo */}
+            <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
+              <strong style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                <ImageIcon size={16} color="var(--foodshare-green-primary)" />
+                <span>Donor Submitted Photo</span>
+              </strong>
+              {donation?.photoUrl ? (
+                <div style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-main)', textAlign: 'center' }}>
+                  <img
+                    src={donation.photoUrl}
+                    alt="Donor Submitted Photo"
+                    style={{ maxWidth: '100%', maxHeight: '260px', objectFit: 'cover', display: 'block', margin: '0 auto' }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent) {
+                        parent.innerText = 'Photo unavailable';
+                        parent.style.padding = '16px';
+                        parent.style.color = 'var(--text-muted)';
+                        parent.style.fontSize = '0.875rem';
+                      }
+                    }}
+                  />
+                </div>
+              ) : (
+                <div style={{ padding: '14px', textAlign: 'center', backgroundColor: 'var(--bg-muted)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                  No photo uploaded
+                </div>
+              )}
+            </div>
 
             {pickup.completionNotes && (
               <div style={{ marginTop: '16px', padding: '14px', borderRadius: 'var(--radius-sm)', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534' }}>

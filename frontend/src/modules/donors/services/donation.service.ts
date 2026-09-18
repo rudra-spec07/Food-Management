@@ -49,13 +49,23 @@ export const donationService = {
 
   async createDonation(payload: CreateDonationPayload): Promise<Donation> {
     const data = buildDonationRequestData(payload);
-    const response = await apiClient.post<ApiSuccessResponse<Donation>>('/donations', data);
+    const isFormData = data instanceof FormData;
+    const response = await apiClient.post<ApiSuccessResponse<Donation>>(
+      '/donations',
+      data,
+      isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+    );
     return response.data.data;
   },
 
   async updateDonation(donationId: string, payload: UpdateDonationPayload): Promise<Donation> {
     const data = buildDonationRequestData(payload);
-    const response = await apiClient.patch<ApiSuccessResponse<Donation>>(`/donations/${donationId}`, data);
+    const isFormData = data instanceof FormData;
+    const response = await apiClient.patch<ApiSuccessResponse<Donation>>(
+      `/donations/${donationId}`,
+      data,
+      isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+    );
     return response.data.data;
   },
 
