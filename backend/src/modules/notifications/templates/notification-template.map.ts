@@ -33,6 +33,8 @@ export function sanitizeContext(payload: Record<string, any>): NotificationConte
     'recipientName',
     'distributionId',
     'inventoryId',
+    'resetUrl',
+    'userId',
   ];
 
   const sanitized: NotificationContext = {};
@@ -147,6 +149,19 @@ export function renderTemplate(eventType: string, context: NotificationContext):
         emailSubject: 'Food Share — Food Donation Distributed',
         emailHtml: `<p>Hello,</p><p>Great news! Your donated food of <strong>${quantity} ${quantityUnit}</strong> was successfully distributed to <strong>${recipientName}</strong>.</p><p>Thank you for helping nourish our community!</p>`,
       };
+
+    case 'PASSWORD_RESET_REQUESTED': {
+      const firstName = escapeHtml(context.firstName || '');
+      const greeting = firstName ? `Hello ${firstName},` : 'Hello,';
+      const resetUrl = escapeHtml(context.resetUrl || '#');
+
+      return {
+        title: 'Password Reset Request',
+        message: 'We received a request to reset your Food Share password.',
+        emailSubject: 'Food Share — Password Reset Request',
+        emailHtml: `<p>${greeting}</p><p>We received a request to reset your Food Share password.</p><p>Use the button below to create a new password.</p><p style="margin: 20px 0;"><a href="${resetUrl}" style="background-color: #2563eb; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">Reset Password</a></p><p>This link expires in 15 minutes.</p><p>If you did not request a password reset, you can safely ignore this email.</p>`,
+      };
+    }
 
     default:
       return {

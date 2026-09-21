@@ -88,6 +88,9 @@ export const LoginPage: React.FC = () => {
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <label className="form-label" htmlFor="login-password" style={{ marginBottom: 0 }}>Password</label>
+                <Link to="/forgot-password" style={{ fontSize: '0.8rem', color: 'var(--foodshare-green-dark)', fontWeight: 600, textDecoration: 'none' }}>
+                  Forgot password?
+                </Link>
               </div>
               <div className="input-container">
                 <Lock className="input-icon-left" size={18} />

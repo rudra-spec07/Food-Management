@@ -17,6 +17,7 @@ const envSchema = z.object({
   RATE_LIMIT_CHANGE_PASSWORD_WINDOW_MS: z.string().transform(Number).default('900000'),
   RATE_LIMIT_CHANGE_PASSWORD_MAX: z.string().transform(Number).default('5'),
   CORS_ORIGIN: z.string().default('*'),
+  FRONTEND_URL: z.string().default('http://localhost:5173'),
   RATE_LIMIT_GLOBAL_WINDOW_MS: z.string().transform(Number).default('900000'),
   RATE_LIMIT_GLOBAL_MAX: z.string().transform(Number).default('300'),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
@@ -24,6 +25,18 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string().optional(),
   CLOUDINARY_FOLDER: z.string().default('foodshare_donations'),
   MAX_FILE_SIZE_MB: z.string().transform(Number).default('5'),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z
+    .string()
+    .transform((val) => Number(val))
+    .optional(),
+  SMTP_SECURE: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

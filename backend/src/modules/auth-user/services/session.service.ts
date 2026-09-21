@@ -85,7 +85,7 @@ export class SessionService {
     await this.authSessionRepository.revoke(jti);
   }
 
-  public async revokeAllUserSessions(userId: string): Promise<void> {
-    await this.authSessionRepository.revokeAllForUser(userId);
+  public async revokeAllUserSessions(userId: string, tx?: any): Promise<void> {
+    await this.authSessionRepository.revokeAllForUser(userId, tx);
   }
 }

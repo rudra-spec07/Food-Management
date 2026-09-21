@@ -71,7 +71,22 @@ export const changePasswordSchema = z.object({
   newPassword: passwordValidationSchema,
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email('Invalid email address format')
+    .transform((val) => val.toLowerCase()),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().length(64, 'Token must be exactly 64 characters long'),
+  newPassword: passwordValidationSchema,
+});
+
 export type RegisterDto = z.infer<typeof registerSchema>;
 export type LoginDto = z.infer<typeof loginSchema>;
 export type UpdateProfileDto = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordDto = z.infer<typeof changePasswordSchema>;
+export type ForgotPasswordDto = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>;

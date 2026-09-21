@@ -130,5 +130,17 @@ describe('Module 06 — Template Engine & Security Unit Tests', () => {
       expect(rendered.emailHtml).toContain('Community Kitchen &lt;script&gt;');
       expect(rendered.emailHtml).not.toContain('<script>');
     });
+
+    it('should render PASSWORD_RESET_REQUESTED template safely with resetUrl', () => {
+      const resetContext = {
+        firstName: 'John <script>',
+        resetUrl: 'http://localhost:5173/reset-password?token=12345',
+      };
+      const rendered = renderTemplate('PASSWORD_RESET_REQUESTED', resetContext);
+      expect(rendered.title).toBe('Password Reset Request');
+      expect(rendered.emailHtml).toContain('Hello John &lt;script&gt;,');
+      expect(rendered.emailHtml).toContain('http://localhost:5173/reset-password?token=12345');
+      expect(rendered.emailHtml).not.toContain('<script>');
+    });
   });
 });

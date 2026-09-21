@@ -4,6 +4,8 @@ import { RecipientResolverService } from '../services/recipient-resolver.service
 import { sanitizeContext, renderTemplate } from '../templates/notification-template.map';
 import { IEmailProvider } from '../providers/email-provider.interface';
 import { ConsoleEmailProvider } from '../providers/console-email.provider';
+import { SmtpEmailProvider } from '../providers/smtp-email.provider';
+import { env } from '../../../config/env';
 
 export class OutboxNotificationWorker {
   private prisma: PrismaClient;
@@ -28,7 +30,11 @@ export class OutboxNotificationWorker {
   }) {
     this.prisma = options?.prisma || new PrismaClient();
     this.recipientResolver = new RecipientResolverService();
-    this.emailProvider = options?.emailProvider || new ConsoleEmailProvider();
+
+    const isSmtpConfigured = Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS) && env.NODE_ENV !== 'test';
+    this.emailProvider =
+      options?.emailProvider ||
+      (isSmtpConfigured ? new SmtpEmailProvider() : new ConsoleEmailProvider());
 
     this.outboxPollIntervalMs = options?.outboxPollIntervalMs || Number(process.env.OUTBOX_POLL_INTERVAL_MS) || 3000;
     this.outboxBatchSize = options?.outboxBatchSize || Number(process.env.OUTBOX_BATCH_SIZE) || 10;
@@ -140,22 +146,34 @@ export class OutboxNotificationWorker {
               const notificationsToCreate: any[] = [];
               const deliveriesToCreate: any[] = [];
 
+              const existingNotifications = await tx.notification.findMany({
+                where: {
+                  eventId: event.id,
+                  recipientId: { in: recipients },
+                },
+                select: { id: true, recipientId: true },
+              });
+              const existingMap = new Map(existingNotifications.map((n) => [n.recipientId, n.id]));
+
               for (const recipientId of recipients) {
                 const pref = prefMap.get(recipientId) || { inApp: true, email: true };
                 if (!pref.inApp && !pref.email) {
                   continue;
                 }
 
-                const notificationId = uuidv4();
-                notificationsToCreate.push({
-                  id: notificationId,
-                  eventId: event.id,
-                  recipientId,
-                  eventType: event.eventType,
-                  title: rendered.title,
-                  message: rendered.message,
-                  data: context as any,
-                });
+                let notificationId = existingMap.get(recipientId);
+                if (!notificationId) {
+                  notificationId = uuidv4();
+                  notificationsToCreate.push({
+                    id: notificationId,
+                    eventId: event.id,
+                    recipientId,
+                    eventType: event.eventType,
+                    title: rendered.title,
+                    message: rendered.message,
+                    data: context as any,
+                  });
+                }
 
                 if (pref.email) {
                   deliveriesToCreate.push({

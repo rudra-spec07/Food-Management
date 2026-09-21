@@ -1,5 +1,5 @@
 import { apiClient } from './api/apiClient';
-import { RegisterPayload, LoginPayload, AuthResponse, ApiSuccessResponse } from '../types/auth.types';
+import { RegisterPayload, LoginPayload, AuthResponse, ApiSuccessResponse, ForgotPasswordPayload, ResetPasswordPayload } from '../types/auth.types';
 
 export const authService = {
   async register(payload: RegisterPayload): Promise<AuthResponse> {
@@ -19,5 +19,15 @@ export const authService = {
       // Even if network fails, logout proceeds locally
       console.warn('Backend logout call completed with status:', err);
     }
+  },
+
+  async forgotPassword(payload: ForgotPasswordPayload): Promise<{ message: string }> {
+    const response = await apiClient.post<{ success: boolean; message: string }>('/auth/forgot-password', payload);
+    return { message: response.data.message };
+  },
+
+  async resetPassword(payload: ResetPasswordPayload): Promise<{ message: string }> {
+    const response = await apiClient.post<{ success: boolean; message: string }>('/auth/reset-password', payload);
+    return { message: response.data.message };
   },
 };

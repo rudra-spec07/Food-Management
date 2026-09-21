@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/auth.service';
-import { registerSchema, loginSchema, changePasswordSchema } from '../dto/auth.dto';
+import { registerSchema, loginSchema, changePasswordSchema, forgotPasswordSchema, resetPasswordSchema } from '../dto/auth.dto';
 
 export class AuthController {
   private authService = new AuthService();
@@ -71,6 +71,37 @@ export class AuthController {
       res.status(200).json({
         success: true,
         message: 'Password changed successfully. All active sessions have been revoked. Please log in again.',
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  public forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const dto = forgotPasswordSchema.parse(req.body);
+      const result = await this.authService.forgotPassword(dto.email);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  public resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const dto = resetPasswordSchema.parse(req.body);
+      const ipAddress = req.ip || req.socket.remoteAddress;
+      const userAgent = req.headers['user-agent'];
+
+      const result = await this.authService.resetPassword(dto.token, dto.newPassword, ipAddress, userAgent);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
       });
     } catch (err) {
       next(err);

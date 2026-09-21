@@ -1,7 +1,10 @@
+import crypto from 'crypto';
 import { AuditEventType, UserRole, UserStatus } from '@prisma/client';
 import { prisma } from '../../../config/database';
+import { env } from '../../../config/env';
 import { UserRepository } from '../repositories/user.repository';
 import { AuditLogRepository } from '../repositories/audit-log.repository';
+import { PasswordResetRepository } from '../repositories/password-reset.repository';
 import { PasswordService } from './password.service';
 import { SessionService } from './session.service';
 import { RegisterDto, LoginDto, ChangePasswordDto } from '../dto/auth.dto';
@@ -12,6 +15,7 @@ export class AuthService {
   private userRepository = new UserRepository();
   private auditLogRepository = new AuditLogRepository();
   private sessionService = new SessionService();
+  private passwordResetRepository = new PasswordResetRepository();
 
   public mapToUserResponse(user: any): UserResponseDto {
     return {
@@ -192,5 +196,108 @@ export class AuthService {
         tx
       );
     });
+  }
+
+  public async forgotPassword(email: string): Promise<{ message: string }> {
+    const genericResponse = {
+      message: 'If an account exists with that email, a password reset link has been sent.',
+    };
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await this.userRepository.findByEmail(normalizedEmail);
+
+    if (!user || user.status !== UserStatus.ACTIVE) {
+      return genericResponse;
+    }
+
+    // Invalidate previous unused reset tokens for that user
+    await this.passwordResetRepository.invalidateUnusedTokensForUser(user.id);
+
+    // Generate 64-char raw token (32 bytes hex)
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+
+    await prisma.$transaction(async (tx) => {
+      await this.passwordResetRepository.create(
+        {
+          userId: user.id,
+          tokenHash,
+          expiresAt,
+        },
+        tx
+      );
+
+      await tx.outboxEvent.create({
+        data: {
+          aggregateType: 'User',
+          aggregateId: user.id,
+          eventType: 'PASSWORD_RESET_REQUESTED',
+          payload: {
+            userId: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            resetUrl,
+          },
+        },
+      });
+    });
+
+    return genericResponse;
+  }
+
+  public async resetPassword(
+    token: string,
+    newPassword: string,
+    ipAddress?: string,
+    userAgent?: string
+  ): Promise<{ message: string }> {
+    if (!token || token.length !== 64) {
+      throw new BadRequestError('Invalid or expired password reset token.', 'AUTH_TOKEN_INVALID_OR_EXPIRED');
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const resetToken = await this.passwordResetRepository.findByTokenHash(tokenHash);
+
+    if (!resetToken || resetToken.usedAt !== null || resetToken.expiresAt <= new Date()) {
+      throw new BadRequestError('Invalid or expired password reset token.', 'AUTH_TOKEN_INVALID_OR_EXPIRED');
+    }
+
+    const user = await this.userRepository.findById(resetToken.userId);
+    if (!user || user.status !== UserStatus.ACTIVE) {
+      throw new BadRequestError('Invalid or expired password reset token.', 'AUTH_TOKEN_INVALID_OR_EXPIRED');
+    }
+
+    const newPasswordHash = await PasswordService.hashPassword(newPassword);
+
+    await prisma.$transaction(async (tx) => {
+      // Concurrency protection: atomical markAsUsed
+      const markedUsed = await this.passwordResetRepository.markAsUsed(resetToken.id, tx);
+      if (!markedUsed) {
+        throw new BadRequestError('Invalid or expired password reset token.', 'AUTH_TOKEN_INVALID_OR_EXPIRED');
+      }
+
+      await this.userRepository.updatePassword(user.id, newPasswordHash, tx);
+      await this.sessionService.revokeAllUserSessions(user.id, tx);
+      await this.auditLogRepository.create(
+        {
+          userId: user.id,
+          action: AuditEventType.PASSWORD_CHANGED,
+          entityType: 'user',
+          entityId: user.id,
+          metadata: { method: 'reset_token' },
+          ipAddress,
+          userAgent,
+        },
+        tx
+      );
+    });
+
+    return {
+      message: 'Your password has been successfully reset. Please log in with your new password.',
+    };
   }
 }

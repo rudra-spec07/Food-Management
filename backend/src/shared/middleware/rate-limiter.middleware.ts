@@ -68,3 +68,20 @@ export const globalRateLimiter = rateLimit({
     });
   },
 });
+
+export const forgotPasswordRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: (req: any, res: any) => {
+    res.status(429).json({
+      success: false,
+      error: {
+        code: 'TOO_MANY_REQUESTS',
+        message: 'Too many password reset requests, please try again later.',
+        requestId: req.id || 'unknown',
+      },
+    });
+  },
+});

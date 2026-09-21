@@ -193,6 +193,15 @@ export class RecipientResolverService {
         break;
       }
 
+      case 'PASSWORD_RESET_REQUESTED': {
+        if (payload.userId) {
+          recipients.add(String(payload.userId));
+        } else if (payload.recipientId) {
+          recipients.add(String(payload.recipientId));
+        }
+        break;
+      }
+
       default:
         break;
     }

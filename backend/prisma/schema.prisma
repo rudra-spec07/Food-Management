@@ -151,6 +151,7 @@ model User {
   reservations         InventoryReservation[]  @relation("UserReservations")
   notifications        Notification[]
   notificationPreferences NotificationPreference[]
+  passwordResetTokens  PasswordResetToken[]
 
   @@map("users")
 }
@@ -561,4 +562,19 @@ model NotificationPreference {
   @@unique([userId, eventType, channel])
   @@index([userId])
   @@map("notification_preferences")
+}
+
+model PasswordResetToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  tokenHash  String    @unique @map("token_hash") @db.Text
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz
+  usedAt     DateTime? @map("used_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("password_reset_tokens")
 }
