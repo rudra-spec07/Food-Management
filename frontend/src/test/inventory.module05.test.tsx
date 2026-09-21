@@ -33,7 +33,7 @@ describe('Frontend Module 05 — Inventory Unit & Component Tests', () => {
       );
 
       expect(await screen.findByText('Inventory & Food Availability')).toBeInTheDocument();
-      expect(screen.getByText('Total Food')).toBeInTheDocument();
+      expect(await screen.findByText('Total Food')).toBeInTheDocument();
       expect(screen.getByText('Available')).toBeInTheDocument();
       expect(screen.getByText('Reserved')).toBeInTheDocument();
       expect(screen.getByText('Distributed')).toBeInTheDocument();
