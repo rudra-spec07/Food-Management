@@ -15,6 +15,7 @@ import {
   Users,
   BarChart3,
   Shield,
+  UtensilsCrossed,
 } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
@@ -23,15 +24,25 @@ export const BottomNav: React.FC = () => {
 
   if (!user) return null;
 
+  const isFoodAnalyzerEnabled = import.meta.env.VITE_FOOD_ANALYZER_ENABLED !== 'false';
+
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Notifications', path: '/notifications', icon: Bell },
     ...(user.role === 'DONOR'
-      ? [{ label: 'My Donations', path: '/donations', icon: HeartHandshake }]
+      ? [
+          { label: 'My Donations', path: '/donations', icon: HeartHandshake },
+          ...(isFoodAnalyzerEnabled
+            ? [{ label: 'Planner', path: '/food-planner', icon: UtensilsCrossed }]
+            : []),
+        ]
       : []),
     ...(user.role === 'ADMIN'
       ? [
           { label: 'Reports', path: '/admin/reports', icon: BarChart3 },
+          ...(isFoodAnalyzerEnabled
+            ? [{ label: 'Planner', path: '/food-planner', icon: UtensilsCrossed }]
+            : []),
           { label: 'Review', path: '/admin/donations/review', icon: ClipboardCheck },
           { label: 'Workers', path: '/admin/workers', icon: UserPlus },
           { label: 'Assignments', path: '/admin/donations/assignments', icon: ClipboardList },

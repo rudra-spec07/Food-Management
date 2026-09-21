@@ -11,6 +11,7 @@ import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { DonorDashboardPage } from './modules/donors/pages/DonorDashboardPage';
+import { FoodQuantityPlannerPage } from './modules/food-planner/pages/FoodQuantityPlannerPage';
 import { AdminDonationReviewPage } from './modules/admin/pages/AdminDonationReviewPage';
 import { AdminWorkerProvisioningPage } from './modules/admin/pages/AdminWorkerProvisioningPage';
 import { AdminAssignmentQueuePage } from './modules/admin/pages/AdminAssignmentQueuePage';
@@ -82,6 +83,13 @@ export const App: React.FC = () => {
               <Route path="/notification-preferences" element={<NotificationPreferencesPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/change-password" element={<ChangePasswordPage />} />
+            </Route>
+          </Route>
+
+          {/* Protected Planner Routes (Donor & Admin) */}
+          <Route element={<ProtectedRoute allowedRoles={['DONOR', 'ADMIN']} />}>
+            <Route element={<AppLayout />}>
+              <Route path="/food-planner" element={<FoodQuantityPlannerPage />} />
             </Route>
           </Route>
 

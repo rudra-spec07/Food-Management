@@ -37,6 +37,14 @@ const envSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().optional(),
+  FOOD_ANALYZER_ENABLED: z
+    .string()
+    .transform((val) => val === 'true')
+    .default('true'),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default('gemini-2.5-flash-lite'),
+  RATE_LIMIT_AI_WINDOW_MS: z.string().transform(Number).default('60000'),
+  RATE_LIMIT_AI_MAX: z.string().transform(Number).default('5'),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -85,3 +85,21 @@ export const forgotPasswordRateLimiter = rateLimit({
     });
   },
 });
+
+export const aiQuantityRateLimiter = rateLimit({
+  windowMs: env.RATE_LIMIT_AI_WINDOW_MS,
+  max: env.RATE_LIMIT_AI_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: any) => req.user?.id || req.ip,
+  message: (req: any, res: any) => {
+    res.status(429).json({
+      success: false,
+      error: {
+        code: 'TOO_MANY_REQUESTS',
+        message: 'Too many AI quantity estimation requests. Please try again later or enter quantities manually.',
+        requestId: req.id || 'unknown',
+      },
+    });
+  },
+});

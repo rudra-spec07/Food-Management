@@ -21,6 +21,8 @@ import notificationRoutes from './modules/notifications/routes/notification.rout
 import preferenceRoutes from './modules/notifications/routes/preference.routes';
 import beneficiaryRoutes from './modules/beneficiary/routes/beneficiary.routes';
 import reportingRoutes from './modules/reporting/routes/reporting.routes';
+import aiEstimatorRoutes from './modules/ai-estimator/routes/ai-estimator.routes';
+
 
 const app = express();
 
@@ -94,6 +96,8 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/donations', donationRoutes);
 app.use('/api/v1/admin/donations', reviewRoutes);
 app.use('/api/v1/admin/workers', adminWorkerRoutes);
+app.use('/api/v1/ai', aiEstimatorRoutes);
+
 
 // Handle unknown routes
 app.use((req: Request, _res: Response, next: NextFunction) => {

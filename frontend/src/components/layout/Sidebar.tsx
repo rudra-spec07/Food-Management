@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FoodShareLogo } from '../common/FoodShareLogo';
-import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Package, Truck, Layers, Bookmark, Bell, Users, BarChart3, Shield } from 'lucide-react';
+import { LayoutDashboard, HeartHandshake, ClipboardCheck, UserPlus, ClipboardList, Package, Truck, Layers, Bookmark, Bell, Users, BarChart3, Shield, UtensilsCrossed } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { user } = useAuth();
@@ -10,15 +10,25 @@ export const Sidebar: React.FC = () => {
 
   if (!user) return null;
 
+  const isFoodAnalyzerEnabled = import.meta.env.VITE_FOOD_ANALYZER_ENABLED !== 'false';
+
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Notifications', path: '/notifications', icon: Bell },
     ...(user.role === 'DONOR'
-      ? [{ label: 'My Donations', path: '/donations', icon: HeartHandshake }]
+      ? [
+          { label: 'My Donations', path: '/donations', icon: HeartHandshake },
+          ...(isFoodAnalyzerEnabled
+            ? [{ label: 'Food Quantity Planner', path: '/food-planner', icon: UtensilsCrossed }]
+            : []),
+        ]
       : []),
     ...(user.role === 'ADMIN'
       ? [
           { label: 'Reports & Analytics', path: '/admin/reports', icon: BarChart3 },
+          ...(isFoodAnalyzerEnabled
+            ? [{ label: 'Food Quantity Planner', path: '/food-planner', icon: UtensilsCrossed }]
+            : []),
           { label: 'Donation Review', path: '/admin/donations/review', icon: ClipboardCheck },
           { label: 'Worker Management', path: '/admin/workers', icon: UserPlus },
           { label: 'Assignment Queue', path: '/admin/donations/assignments', icon: ClipboardList },

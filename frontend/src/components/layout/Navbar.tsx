@@ -51,6 +51,7 @@ export const Navbar: React.FC = () => {
   const getPageTitle = () => {
     if (location.pathname === '/dashboard') return 'Dashboard Overview';
     if (location.pathname === '/donations') return 'My Food Donations';
+    if (location.pathname === '/food-planner') return 'AI Food Quantity Planner';
     if (location.pathname === '/admin/donations/review') return 'Donation Review Queue';
     if (location.pathname === '/admin/workers') return 'Worker Account Provisioning';
     if (location.pathname === '/admin/donations/assignments') return 'Worker Assignment Queue';
