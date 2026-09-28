@@ -25,7 +25,7 @@ describe('Real Neon Database Integration & Security Tests — Module 02 (Donatio
       firstName: 'DonorOne',
       lastName: 'Tester',
       email: donor1Email,
-      phone: '+919876543210',
+      phone: String(Math.floor(6000000000 + Math.random() * 3000000000)),
       password,
     });
     expect(reg1Res.status).toBe(201);
@@ -37,7 +37,7 @@ describe('Real Neon Database Integration & Security Tests — Module 02 (Donatio
       firstName: 'DonorTwo',
       lastName: 'Tester',
       email: donor2Email,
-      phone: '+919876543211',
+      phone: String(Math.floor(6000000000 + Math.random() * 3000000000)),
       password,
     });
     expect(reg2Res.status).toBe(201);
@@ -84,7 +84,7 @@ describe('Real Neon Database Integration & Security Tests — Module 02 (Donatio
         pickupLatitude: 22.7196,
         pickupLongitude: 75.8577,
         contactName: 'Donor One',
-        contactPhone: '+919876543210',
+        contactPhone: '9876543210',
         photoUrl: 'https://images.example.com/donation.png',
         notes: 'Call on arrival',
         // Injected fields (must be ignored/stripped)

@@ -32,7 +32,7 @@ describe('Module 03 — Real Neon Database Integration, Security, Concurrency & 
       firstName: 'Mod3Donor',
       lastName: 'User',
       email: donorEmail,
-      phone: '+919876543301',
+      phone: String(Math.floor(6000000000 + Math.random() * 3000000000)),
       password,
     });
     expect(regDonor.status).toBe(201);
@@ -44,7 +44,7 @@ describe('Module 03 — Real Neon Database Integration, Security, Concurrency & 
       firstName: 'Mod3Admin',
       lastName: 'User',
       email: adminEmail,
-      phone: '+919876543302',
+      phone: String(Math.floor(6000000000 + Math.random() * 3000000000)),
       password,
     });
     expect(regAdmin.status).toBe(201);
@@ -62,7 +62,7 @@ describe('Module 03 — Real Neon Database Integration, Security, Concurrency & 
       firstName: 'Mod3Worker',
       lastName: 'User',
       email: workerEmail,
-      phone: '+919876543303',
+      phone: String(Math.floor(6000000000 + Math.random() * 3000000000)),
       password,
     });
     expect(regWorker.status).toBe(201);
@@ -164,7 +164,7 @@ describe('Module 03 — Real Neon Database Integration, Security, Concurrency & 
           expiresAt,
           pickupAddress: '789 Main Street, Indore',
           contactName: 'Donor User',
-          contactPhone: '+919876543301',
+          contactPhone: '9876543301',
         });
 
       expect(createRes.status).toBe(201);
@@ -262,7 +262,7 @@ describe('Module 03 — Real Neon Database Integration, Security, Concurrency & 
           expiresAt,
           pickupAddress: '123 Bakery Lane',
           contactName: 'Donor User',
-          contactPhone: '+919876543301',
+          contactPhone: '9876543301',
         });
 
       expect(createRes.status).toBe(201);
@@ -304,7 +304,7 @@ describe('Module 03 — Real Neon Database Integration, Security, Concurrency & 
           expiresAt,
           pickupAddress: 'Race Condition Spot',
           contactName: 'Donor User',
-          contactPhone: '+919876543301',
+          contactPhone: '9876543301',
         });
 
       expect(createRes.status).toBe(201);

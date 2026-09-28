@@ -10,7 +10,7 @@ describe('Real Neon Database Integration & Deep Security Tests', () => {
     firstName: 'QADonorOne',
     lastName: 'Tester',
     email: 'qa-donor-1-' + Date.now() + '@example.test',
-    phone: '1234567890',
+    phone: '9876543210',
     password: 'StrongPassword123!',
   };
 
@@ -18,7 +18,7 @@ describe('Real Neon Database Integration & Deep Security Tests', () => {
     firstName: 'QADonorTwo',
     lastName: 'Tester',
     email: 'qa-donor-2-' + Date.now() + '@example.test',
-    phone: '0987654321',
+    phone: '9876543219',
     password: 'StrongPassword123!',
   };
 

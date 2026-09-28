@@ -287,15 +287,14 @@ describe('Password Reset & Forgot Password Unit & Integration Tests', () => {
     it('should correctly target the exact requesting user and exact email address across arbitrary email domains', async () => {
       const { OutboxNotificationWorker } = require('../../src/modules/notifications/worker/outbox-notification.worker');
 
-      await prisma.outboxEvent.deleteMany({
-        where: { aggregateId: testUser.id },
-      });
-
-      await prisma.notificationDelivery.deleteMany({
-        where: { notification: { recipientId: testUser.id } },
-      });
-
       for (const targetUser of createdUsers) {
+        await prisma.outboxEvent.deleteMany({
+          where: { aggregateId: targetUser.id },
+        });
+        await prisma.notificationDelivery.deleteMany({
+          where: { notification: { recipientId: targetUser.id } },
+        });
+
         // 1. Trigger forgot password
         const res = await authService.forgotPassword(targetUser.email);
         expect(res.message).toBe('If an account exists with that email, a password reset link has been sent.');
@@ -321,6 +320,13 @@ describe('Password Reset & Forgot Password Unit & Integration Tests', () => {
         // 4. Verify OutboxNotificationWorker resolves EXACT recipient and creates single delivery
         const mockEmailProvider = { send: jest.fn().mockResolvedValue({ messageId: 'mock-id', sentAt: new Date() }) };
         const worker = new OutboxNotificationWorker({ emailProvider: mockEmailProvider });
+
+        await prisma.outboxEvent.deleteMany({
+          where: { aggregateId: { not: targetUser.id }, publishedAt: null },
+        });
+        await prisma.notificationDelivery.deleteMany({
+          where: { notification: { recipientId: { not: targetUser.id } }, status: 'PENDING' },
+        });
 
         await worker.processOutboxBatch();
         await worker.processDeliveryBatch();

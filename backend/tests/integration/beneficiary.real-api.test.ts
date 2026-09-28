@@ -158,7 +158,7 @@ describe('Module 06 — Beneficiary Management & Integration Real API Tests', ()
           name: 'Hope Community Shelter',
           contactPerson: 'Sarah Connor',
           email: 'contact@hopeshelter.org',
-          phone: '555-0199',
+          phone: '9876543301',
           address: '777 Hope Ave',
           notes: 'Primary shelter recipient',
         });
