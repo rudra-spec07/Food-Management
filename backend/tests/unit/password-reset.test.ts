@@ -287,6 +287,14 @@ describe('Password Reset & Forgot Password Unit & Integration Tests', () => {
     it('should correctly target the exact requesting user and exact email address across arbitrary email domains', async () => {
       const { OutboxNotificationWorker } = require('../../src/modules/notifications/worker/outbox-notification.worker');
 
+      await prisma.outboxEvent.deleteMany({
+        where: { aggregateId: testUser.id },
+      });
+
+      await prisma.notificationDelivery.deleteMany({
+        where: { notification: { recipientId: testUser.id } },
+      });
+
       for (const targetUser of createdUsers) {
         // 1. Trigger forgot password
         const res = await authService.forgotPassword(targetUser.email);
