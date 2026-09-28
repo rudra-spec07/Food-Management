@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, Plus, Trash2, Loader2, AlertCircle, RotateCcw, HeartHandshake } from 'lucide-react';
+import { UtensilsCrossed, Plus, Trash2, Loader2, AlertCircle, RotateCcw, HeartHandshake, Info } from 'lucide-react';
 import { aiEstimatorService, AiEstimateItem } from '../../../services/ai-estimator.service';
 
 export const FoodQuantityPlanner: React.FC = () => {
@@ -13,6 +13,7 @@ export const FoodQuantityPlanner: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [estimates, setEstimates] = useState<AiEstimateItem[]>([]);
+  const [estimateSource, setEstimateSource] = useState<'GEMINI' | 'LOCAL_FALLBACK'>('GEMINI');
   const [hasEstimated, setHasEstimated] = useState(false);
 
   if (!isEnabled) {
@@ -63,11 +64,18 @@ export const FoodQuantityPlanner: React.FC = () => {
 
     try {
       setLoading(true);
-      const results = await aiEstimatorService.estimateQuantity({
+      const results: any = await aiEstimatorService.estimateQuantity({
         peopleCount: count,
         foodItems: validItems,
       });
-      setEstimates(results);
+
+      if (Array.isArray(results)) {
+        setEstimates(results);
+        setEstimateSource('GEMINI');
+      } else {
+        setEstimates(results?.estimates || []);
+        setEstimateSource(results?.source || 'GEMINI');
+      }
       setHasEstimated(true);
     } catch (err: any) {
       const msg =
@@ -81,6 +89,7 @@ export const FoodQuantityPlanner: React.FC = () => {
 
   const handlePlanAgain = () => {
     setEstimates([]);
+    setEstimateSource('GEMINI');
     setHasEstimated(false);
     setError(null);
   };
@@ -308,6 +317,26 @@ export const FoodQuantityPlanner: React.FC = () => {
               <span>Plan Again</span>
             </button>
           </div>
+
+          {estimateSource === 'LOCAL_FALLBACK' && (
+            <div
+              style={{
+                backgroundColor: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: 'var(--radius-md, 8px)',
+                padding: '12px 16px',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                color: '#1e40af',
+                fontSize: '0.875rem',
+              }}
+            >
+              <Info size={18} style={{ flexShrink: 0 }} />
+              <span>Gemini is temporarily unavailable. Using local estimate.</span>
+            </div>
+          )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
             {estimates.map((est, idx) => (

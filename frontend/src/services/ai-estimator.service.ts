@@ -17,15 +17,23 @@ export interface AiEstimateResponsePayload {
   success: boolean;
   data: {
     estimates: AiEstimateItem[];
+    source?: 'GEMINI' | 'LOCAL_FALLBACK';
   };
 }
 
+export interface AiEstimateResult {
+  estimates: AiEstimateItem[];
+  source?: 'GEMINI' | 'LOCAL_FALLBACK';
+}
+
 export const aiEstimatorService = {
-  estimateQuantity: async (payload: AiEstimateRequestPayload): Promise<AiEstimateItem[]> => {
+  estimateQuantity: async (
+    payload: AiEstimateRequestPayload
+  ): Promise<AiEstimateResult> => {
     const response = await apiClient.post<AiEstimateResponsePayload>(
       '/ai/estimate-quantity',
       payload
     );
-    return response.data.data.estimates;
+    return response.data.data;
   },
 };

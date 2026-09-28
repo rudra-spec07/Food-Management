@@ -184,6 +184,21 @@ describe('FoodQuantityPlanner Component', () => {
     });
   });
 
+  it('15b. Local fallback response displays informational message and estimates', async () => {
+    (aiEstimatorService.estimateQuantity as ReturnType<typeof vi.fn>).mockResolvedValue({
+      estimates: [{ foodItem: 'Rice', quantity: 10, unit: 'KG', reasoning: 'Local estimate' }],
+      source: 'LOCAL_FALLBACK',
+    });
+
+    renderPlanner();
+    fireEvent.click(screen.getByRole('button', { name: /Estimate Quantity/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Gemini is temporarily unavailable. Using local estimate./i)).toBeInTheDocument();
+      expect(screen.getByText('~10 KG')).toBeInTheDocument();
+    });
+  });
+
   it('16. No API call triggered while typing in inputs', () => {
     renderPlanner();
     const peopleInput = screen.getByLabelText(/Number of People/i);

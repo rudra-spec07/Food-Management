@@ -5,13 +5,16 @@ import {
   AiEstimateResponseDto,
   aiEstimateResponseSchema,
 } from '../dto/ai-estimator.dto';
+import { LocalFoodEstimatorService } from './local-food-estimator.service';
 
 export class AiEstimatorService {
   private readonly geminiModel: string;
   private readonly timeoutMs: number = 5000;
+  private readonly localEstimator: LocalFoodEstimatorService;
 
-  constructor() {
+  constructor(localEstimator?: LocalFoodEstimatorService) {
     this.geminiModel = env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
+    this.localEstimator = localEstimator || new LocalFoodEstimatorService();
   }
 
   public async estimateQuantity(dto: AiEstimateRequestDto): Promise<AiEstimateResponseDto> {
@@ -23,10 +26,8 @@ export class AiEstimatorService {
     }
 
     if (!env.GEMINI_API_KEY) {
-      throw new ServiceUnavailableError(
-        'AI food quantity estimator service is not configured.',
-        'AI_SERVICE_UNAVAILABLE'
-      );
+      console.warn('[AiEstimatorService] GEMINI_API_KEY is not configured. Using local fallback.');
+      return this.localEstimator.estimateQuantity(dto);
     }
 
     const systemPrompt =
@@ -90,13 +91,10 @@ export class AiEstimatorService {
       clearTimeout(timer);
 
       if (!response.ok) {
-        console.error(
-          `[AiEstimatorService] Gemini API call failed with status: ${response.status}`
+        console.warn(
+          `[AiEstimatorService] Gemini API call failed with status: ${response.status}. Using local fallback.`
         );
-        throw new ServiceUnavailableError(
-          'AI quantity estimation is temporarily unavailable. Please enter quantities manually.',
-          'AI_SERVICE_UNAVAILABLE'
-        );
+        return this.localEstimator.estimateQuantity(dto);
       }
 
       const rawJson: any = await response.json();
@@ -104,57 +102,45 @@ export class AiEstimatorService {
         rawJson?.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!textContent) {
-        console.error('[AiEstimatorService] Missing text content in Gemini response candidate');
-        throw new ServiceUnavailableError(
-          'AI quantity estimation returned empty content. Please enter quantities manually.',
-          'AI_SERVICE_UNAVAILABLE'
-        );
+        console.warn('[AiEstimatorService] Missing text content in Gemini response candidate. Using local fallback.');
+        return this.localEstimator.estimateQuantity(dto);
       }
 
       let parsedData: any;
       try {
         parsedData = JSON.parse(textContent);
       } catch (parseErr) {
-        console.error('[AiEstimatorService] Failed to parse JSON from Gemini text content');
-        throw new ServiceUnavailableError(
-          'AI quantity estimation returned malformed output. Please enter quantities manually.',
-          'AI_SERVICE_UNAVAILABLE'
-        );
+        console.warn('[AiEstimatorService] Failed to parse JSON from Gemini text content. Using local fallback.');
+        return this.localEstimator.estimateQuantity(dto);
       }
 
       const validatedResult = aiEstimateResponseSchema.safeParse(parsedData);
       if (!validatedResult.success) {
-        console.error(
-          '[AiEstimatorService] Zod schema validation failed for Gemini response:',
+        console.warn(
+          '[AiEstimatorService] Zod schema validation failed for Gemini response. Using local fallback:',
           validatedResult.error.format()
         );
-        throw new ServiceUnavailableError(
-          'AI quantity estimation response validation failed. Please enter quantities manually.',
-          'AI_SERVICE_UNAVAILABLE'
-        );
+        return this.localEstimator.estimateQuantity(dto);
       }
 
-      return validatedResult.data;
+      return {
+        ...validatedResult.data,
+        source: 'GEMINI',
+      };
     } catch (err: any) {
       clearTimeout(timer);
 
-      if (err instanceof ServiceUnavailableError) {
+      if (err instanceof ServiceUnavailableError && err.code === 'AI_SERVICE_DISABLED') {
         throw err;
       }
 
       if (err.name === 'AbortError') {
-        console.error('[AiEstimatorService] Gemini API request timed out after 5 seconds');
-        throw new ServiceUnavailableError(
-          'AI quantity estimation timed out. Please enter quantities manually.',
-          'AI_SERVICE_UNAVAILABLE'
-        );
+        console.warn('[AiEstimatorService] Gemini API request timed out after 5 seconds. Using local fallback.');
+        return this.localEstimator.estimateQuantity(dto);
       }
 
-      console.error('[AiEstimatorService] Unexpected error during Gemini call:', err.message || err);
-      throw new ServiceUnavailableError(
-        'AI quantity estimation service is temporarily unavailable. Please enter quantities manually.',
-        'AI_SERVICE_UNAVAILABLE'
-      );
+      console.warn('[AiEstimatorService] Gemini API request error. Using local fallback:', err.message || err);
+      return this.localEstimator.estimateQuantity(dto);
     }
   }
 }

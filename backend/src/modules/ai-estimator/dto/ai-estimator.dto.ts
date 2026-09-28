@@ -46,6 +46,7 @@ export const aiEstimateItemSchema = z.object({
 
 export const aiEstimateResponseSchema = z.object({
   estimates: z.array(aiEstimateItemSchema).min(1, 'At least 1 estimate required'),
+  source: z.enum(['GEMINI', 'LOCAL_FALLBACK']).optional().default('GEMINI'),
 });
 
 export type AiEstimateItemDto = z.infer<typeof aiEstimateItemSchema>;
